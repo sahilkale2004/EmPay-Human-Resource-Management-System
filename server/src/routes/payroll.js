@@ -16,6 +16,9 @@ router.post('/runs/:id/generate', authenticateToken, requireRole(['ADMIN', 'PAYR
 // PUT /api/payroll/runs/:id/validate
 router.put('/runs/:id/validate', authenticateToken, requireRole(['ADMIN', 'PAYROLL_OFFICER']), payrollController.validatePayrun);
 
+// POST /api/payroll/runs/:id/export
+router.post('/runs/:id/export', authenticateToken, requireRole(['ADMIN', 'PAYROLL_OFFICER']), payrollController.exportPayrun);
+
 // GET /api/payroll/slips
 router.get('/slips', authenticateToken, payrollController.getPayslips);
 
