@@ -39,12 +39,14 @@ export const EmployeesList = () => {
     <div className="space-y-6">
       {/* Top Header Controls - Wireframe Style */}
       <div className="flex items-center gap-4">
-        <button 
-          onClick={() => navigate('/employees/new')}
-          className="bg-[#D946EF] text-white px-8 py-2 rounded text-sm font-bold uppercase tracking-wider shadow-sm"
-        >
-          NEW
-        </button>
+        {isAdminOrHR && (
+          <button 
+            onClick={() => navigate('/employees/new')}
+            className="bg-[#D946EF] text-white px-8 py-2 rounded text-sm font-bold uppercase tracking-wider shadow-sm"
+          >
+            NEW
+          </button>
+        )}
         <div className="flex-1 relative">
           <input 
             type="text" 

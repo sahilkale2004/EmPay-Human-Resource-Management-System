@@ -35,6 +35,10 @@ export const Settings = () => {
     }
   };
 
+  if (currentUser?.role !== 'ADMIN') {
+    return <div className="p-20 text-center text-error font-bold">Access Denied: You do not have permission to view settings.</div>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
