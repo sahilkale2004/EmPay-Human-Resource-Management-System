@@ -37,8 +37,8 @@ const createPayrun = async (req, res) => {
 
 const generatePayslips = async (req, res) => {
   try {
-    const { id } = req.params;
     const result = await generatePayslipsForPayrun(id);
+    await pool.query(`UPDATE payruns SET status = 'DONE' WHERE id = ?`, [id]);
     res.json({ success: true, message: `Generated ${result.count} payslips for payrun ${id}` });
   } catch (err) {
     console.error('Generate payslips error:', err);

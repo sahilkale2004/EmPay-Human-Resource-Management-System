@@ -564,7 +564,7 @@ const SalaryTab = ({ employeeId, isSelf, currentUser }) => {
         {isAdminOrPayroll && (
           <button 
             onClick={() => {
-              setEditData({ wage_type: 'MONTHLY', monthly_wage: 0, basic_pct: 40, hra_pct: 50, pf_pct: 12, professional_tax: 200 });
+              setEditData({ wage_type: 'MONTHLY', monthly_wage: 0, hourly_rate: 0, basic_pct: 40, hra_pct: 50, pf_pct: 12, professional_tax: 200 });
               setIsEditing(true);
             }}
             className="bg-primary text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all active:scale-95"
@@ -597,30 +597,46 @@ const SalaryTab = ({ employeeId, isSelf, currentUser }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-8">
             <Section title="General Terms">
-               <div className="grid grid-cols-2 gap-6 bg-white p-6 rounded-3xl border border-border">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Wage Type</label>
-                    <div className="flex gap-4">
-                      {['MONTHLY', 'HOURLY'].map(t => (
-                        <button 
-                          key={t}
-                          onClick={() => setEditData(prev => ({...prev, wage_type: t}))}
-                          className={clsx("px-4 py-2 rounded-xl text-xs font-bold transition-all border", 
-                            editData.wage_type === t ? "bg-primary text-white border-primary" : "bg-surface text-muted border-border hover:border-muted")}
-                        >
-                          {t}
-                        </button>
-                      ))}
+               <div className="bg-white p-8 rounded-3xl border border-border space-y-8">
+                  <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-widest block">Payment Type</label>
+                      <div className="flex gap-2">
+                        {['MONTHLY'].map(t => (
+                          <button 
+                            key={t}
+                            type="button"
+                            onClick={() => setEditData(prev => ({...prev, wage_type: t}))}
+                            className={clsx("px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border", 
+                              editData.wage_type === t ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-surface text-muted border-border hover:border-muted")}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 space-y-3 w-full">
+                      <label className="text-[10px] font-black text-muted uppercase tracking-widest block">
+                        Monthly Wage (₹)
+                      </label>
+                      <div className="relative group">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted/40 font-bold">₹</span>
+                        <input 
+                          name="monthly_wage" 
+                          type="number" 
+                          value={editData.monthly_wage} 
+                          onChange={handleChange} 
+                          className="w-full bg-surface border border-border rounded-2xl pl-8 pr-4 py-3 font-bold text-sm outline-none focus:border-primary transition-all" 
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted font-bold italic absolute mt-1">Yearly: ₹{(Number(editData.monthly_wage)*12).toLocaleString()}</p>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Monthly Wage (₹)</label>
-                    <input name="monthly_wage" type="number" value={editData.monthly_wage} onChange={handleChange} className="w-full bg-surface border border-border rounded-xl px-4 py-2 font-bold text-sm outline-none focus:border-primary" />
-                    <p className="text-[10px] text-muted font-bold italic">Yearly: ₹{(Number(editData.monthly_wage)*12).toLocaleString()}</p>
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Effective From</label>
-                    <input name="effective_from" type="date" value={editData.effective_from ? editData.effective_from.split('T')[0] : ''} onChange={handleChange} className="w-full bg-surface border border-border rounded-xl px-4 py-2 font-bold text-sm outline-none focus:border-primary" />
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest block">Effective From</label>
+                    <input name="effective_from" type="date" value={editData.effective_from ? editData.effective_from.split('T')[0] : ''} onChange={handleChange} className="w-full bg-surface border border-border rounded-2xl px-5 py-3 font-bold text-sm outline-none focus:border-primary" />
                   </div>
                </div>
             </Section>

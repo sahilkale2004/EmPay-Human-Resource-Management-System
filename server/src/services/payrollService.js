@@ -99,6 +99,7 @@ const generatePayslipsForPayrun = async (payrunId) => {
       // 6. Computations
       let payableDays = 0;
       let attendanceDays = 0; // For logging
+      let calculatedGross = 0;
 
       if (structure.wage_type === 'MONTHLY') {
         // For salaried employees, assume full month minus explicitly recorded absences or unpaid leaves
@@ -106,22 +107,45 @@ const generatePayslipsForPayrun = async (payrunId) => {
         if (payableDays < 0) payableDays = 0;
         attendanceDays = payableDays - paidLeaveDays; // roughly
         if (attendanceDays < 0) attendanceDays = 0;
+        
+        const dailyRate = Number(structure.monthly_wage) / totalWorkingDays;
+        calculatedGross = dailyRate * payableDays;
       } else {
-        // For hourly, rely strictly on explicit check-ins
+        // For hourly, calculate based on total work hours
         const [att] = await connection.query(
-          `SELECT COUNT(DISTINCT date) as days_present 
+          `SELECT SUM(work_hours) as total_hours, COUNT(DISTINCT date) as days_present 
            FROM attendances 
            WHERE employee_id = ? AND date >= ? AND date <= ? AND status IN ('PRESENT', 'HALF_DAY')`,
           [emp.id, payrun.period_start, payrun.period_end]
         );
-        attendanceDays = att[0].days_present;
-        payableDays = attendanceDays + paidLeaveDays;
+        
+        const totalHours = parseFloat(att[0].total_hours || 0);
+        attendanceDays = att[0].days_present || 0;
+        
+        // Assume 8 hours per paid leave day for hourly staff
+        const leaveHours = paidLeaveDays * 8;
+        const totalPayableHours = totalHours + leaveHours;
+        
+        if (structure.hourly_rate && Number(structure.hourly_rate) > 0) {
+          calculatedGross = totalPayableHours * Number(structure.hourly_rate);
+        } else {
+          // Fallback: Calculate hourly rate from monthly wage if hourly_rate not explicitly set
+          const dailyRate = Number(structure.monthly_wage) / totalWorkingDays;
+          const hourlyRate = dailyRate / 8;
+          calculatedGross = totalPayableHours * hourlyRate;
+        }
+        
+        // For reporting/UI consistency, convert hours back to "equivalent days" if needed, 
+        // but here we just need the gross wage.
+        payableDays = totalPayableHours / 8;
       }
-      const dailyRate = structure.monthly_wage / totalWorkingDays;
       
-      // Prevent gross wage from exceeding monthly wage if they over-worked somehow without overtime rules
-      const calculatedGross = dailyRate * payableDays;
-      const grossWage = calculatedGross > structure.monthly_wage ? structure.monthly_wage : calculatedGross;
+      // Prevent gross wage from exceeding monthly wage if they over-worked somehow without overtime rules (only for monthly cap)
+      // Actually for hourly, if they work overtime, they should be paid more, but let's keep the logic consistent with monthly for now
+      const grossWage = (structure.wage_type === 'MONTHLY' && calculatedGross > Number(structure.monthly_wage)) 
+        ? Number(structure.monthly_wage) 
+        : calculatedGross;
+
 
       // Components as % of Gross
       const basicSalary = grossWage * (structure.basic_pct / 100);
