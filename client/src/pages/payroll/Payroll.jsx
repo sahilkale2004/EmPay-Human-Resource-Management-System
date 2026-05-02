@@ -175,7 +175,7 @@ export const Payroll = () => {
             </thead>
             <tbody className="divide-y divide-[#EDE9E3]">
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loadingâ€¦</td></tr>
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loading...</td></tr>
               ) : payslips.map(slip => (
                 <tr key={slip.id} className="hover:bg-[#F5F2ED] transition-colors">
                   <td className="px-6 py-3.5 font-semibold text-[#2A2520]">{slip.first_name} {slip.last_name}</td>

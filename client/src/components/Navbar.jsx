@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
+import { NotificationBell } from './NotificationBell';
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
@@ -49,7 +50,7 @@ export const Navbar = () => {
   return (
     <header className="h-14 bg-white border-b border-gray-300 flex items-center justify-end px-10 sticky top-0 z-40">
       <div className="flex items-center gap-6">
-        {/* Clickable Status Dot - Only for Employees */}
+        {/* Attendance Toggle */}
         {user?.employee_id && (
           <button 
             type="button"
@@ -70,39 +71,77 @@ export const Navbar = () => {
           </button>
         )}
 
+        {/* Notification Bell */}
+        <NotificationBell />
+
         {/* User Dropdown */}
         <div className="relative">
           <button 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center relative group overflow-hidden border border-gray-200"
+            className="w-9 h-9 rounded-full border-2 border-primary overflow-hidden hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-blue-400 rounded-sm flex items-center justify-center text-white">
-              <User className="w-5 h-5" />
-            </div>
+            {user?.profile_picture ? (
+              <img 
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${user.profile_picture}`} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+                onError={(e) => { e.target.src = ''; e.target.onerror = null; }}
+              />
+            ) : (
+              <div className="w-full h-full bg-surface flex items-center justify-center">
+                <User className="w-5 h-5 text-muted" />
+              </div>
+            )}
           </button>
 
           {isDropdownOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 shadow-xl overflow-hidden z-50">
-                <button 
-                  onClick={() => {
-                    setIsDropdownOpen(false);
-                    if (user?.employee_id) navigate(`/employees/${user.employee_id}`);
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-200"
-                >
-                  My Profile
-                </button>
-                <button 
-                  onClick={() => {
-                    setIsDropdownOpen(false);
-                    logout();
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Log Out
-                </button>
+              <div className="absolute right-0 mt-3 w-56 bg-white border border-border shadow-2xl rounded-2xl overflow-hidden z-50 animate-fade-in-up">
+                {/* User Info Header */}
+                <div className="px-4 py-4 bg-surface/50 border-b border-border flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full border border-white shadow-sm overflow-hidden bg-white shrink-0">
+                    {user?.profile_picture ? (
+                      <img 
+                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${user.profile_picture}`} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-full h-full p-2 text-muted" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-text truncate leading-tight">
+                      {user?.login_id || 'User'}
+                    </p>
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">
+                      {user?.role?.replace('_', ' ') || 'Staff'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="p-1">
+                  <button 
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      if (user?.employee_id) navigate(`/employees/${user.employee_id}`);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-semibold text-text-soft hover:bg-surface rounded-xl transition-colors"
+                  >
+                    My Profile
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      logout();
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-semibold text-error hover:bg-error/5 rounded-xl transition-colors flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log Out
+                  </button>
+                </div>
               </div>
             </>
           )}

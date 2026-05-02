@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { Upload, Loader2, Banknote } from 'lucide-react';
+import PasswordInput from '../components/ui/PasswordInput';
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -108,28 +109,22 @@ export const Signup = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className={labelClass}>Password</label>
-              <input
-                type="password"
-                name="password"
-                className={inputClass}
-                placeholder="Create a password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Confirm Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                className={inputClass}
-                placeholder="Confirm password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-            </div>
+            <PasswordInput
+              label="Password"
+              name="password"
+              placeholder="Create a password"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={isLoading}
+            />
+            <PasswordInput
+              label="Confirm Password"
+              name="confirmPassword"
+              placeholder="Confirm password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              disabled={isLoading}
+            />
           </div>
 
           <button

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
@@ -55,7 +55,7 @@ export const Settings = () => {
           </thead>
           <tbody className="divide-y divide-[#EDE9E3]">
             {loading ? (
-              <tr><td colSpan={4} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loading settingsâ€¦</td></tr>
+              <tr><td colSpan={4} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loading settings...</td></tr>
             ) : users.length === 0 ? (
               <tr><td colSpan={4} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">No users found.</td></tr>
             ) : (

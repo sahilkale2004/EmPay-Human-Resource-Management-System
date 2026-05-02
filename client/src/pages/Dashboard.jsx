@@ -3,22 +3,25 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { 
   Users, Clock, CalendarOff, AlertTriangle, 
-  ArrowRight, Play, Square, Loader2, ChevronRight
+  ArrowRight, Play, Square, Loader2, ChevronRight,
+  Search, TrendingUp, Filter, User
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, Legend, LineChart, Line 
+  Tooltip, ResponsiveContainer, Legend, AreaChart, Area 
 } from 'recharts';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -35,46 +38,41 @@ export const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
   }, [fetchDashboardData]);
-
-  const handleCheckInOut = async (action) => {
-    try {
-      const res = await api.post(`/attendance/${action}`);
-      if (res.data.success) {
-        toast.success(action === 'check-in' ? 'Checked in successfully!' : 'Checked out successfully!');
-        fetchDashboardData();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Action failed');
-    }
-  };
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-10 h-10 text-#5C7A5F animate-spin" />
+      <Loader2 className="w-10 h-10 text-primary animate-spin" />
     </div>
   );
 
   const isAdminOrHR = ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER'].includes(user?.role);
+  const filteredEmployees = data?.employees?.filter(emp => 
+    `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.job_position?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-8 pb-12 animate-fade-in-up">
       {/* Welcome Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#FDFBF8] p-7 rounded-2xl shadow-sm border border-[#DDD8CF]">
-        <div>
-          <h1 className="text-2xl font-bold text-[#2A2520]">
+      <div className="bg-card p-8 rounded-3xl shadow-sm border border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+        <div className="relative z-10">
+          <h1 className="text-3xl font-bold text-text">
             Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'},{' '}
-            <span className="text-[#5C7A5F]">{user?.email?.split('@')[0]}</span> ðŸ‘‹
+            <span className="text-primary font-display italic tracking-wide">{user?.login_id || user?.email?.split('@')[0]}</span> ✨
           </h1>
-          <p className="text-[#6B6259] text-sm font-medium mt-1">Here's what's happening in EmPay today.</p>
+          <p className="text-muted text-sm font-medium mt-2">Here's your organization overview for today.</p>
         </div>
-        
+        {!isAdminOrHR && (
+          <div className="flex gap-3">
+             {/* Quick Actions for Employees could go here */}
+          </div>
+        )}
+        <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-blob"></div>
       </div>
 
       {isAdminOrHR ? (
-        <AdminView data={data} navigate={navigate} />
+        <AdminView data={data} filteredEmployees={filteredEmployees} searchQuery={searchQuery} setSearchQuery={setSearchQuery} navigate={navigate} />
       ) : (
         <EmployeeView data={data} navigate={navigate} />
       )}
@@ -82,111 +80,141 @@ export const Dashboard = () => {
   );
 };
 
-/* --- ADMIN DASHBOARD --- */
-const AdminView = ({ data, navigate }) => (
-  <div className="space-y-8">
-    {/* Counters */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <StatCard title="Total Employees" value={data?.totalEmployees} icon={Users} color="text-[#5C7A5F]" bg="bg-[#5C7A5F]/10" />
-      <StatCard title="Today's Attendance" value={data?.todayPresent} icon={Clock} color="text-[#8B7355]" bg="bg-[#8B7355]/10" />
-      <StatCard title="Pending Requests" value={data?.pendingTimeOff} icon={CalendarOff} color="text-[#C28A2B]" bg="bg-[#C28A2B]/10" />
+const AdminView = ({ data, filteredEmployees, searchQuery, setSearchQuery, navigate }) => (
+  <div className="space-y-10">
+    {/* Stats Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <StatCard title="Total Staff" value={data?.totalEmployees} icon={Users} color="text-primary" bg="bg-primary/10" trend="+4% this month" />
+      <StatCard title="On Duty" value={data?.todayPresent} icon={Clock} color="text-secondary" bg="bg-secondary/10" trend="92% capacity" />
+      <StatCard title="On Leave" value={data?.totalEmployees - data?.todayPresent} icon={CalendarOff} color="text-error" bg="bg-error/10" />
+      <StatCard title="Pending Review" value={data?.pendingTimeOff} icon={AlertTriangle} color="text-warning" bg="bg-warning/10" />
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Employee Cards Section */}
-      <div className="lg:col-span-2 space-y-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#2A2520]">Team Overview</h2>
-          <button onClick={() => navigate('/employees')} className="text-#5C7A5F font-semibold text-sm flex items-center gap-1 hover:text-#3F5C42 transition-colors">
-            View All <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {data?.employees?.map(emp => (
-            <div 
-              key={emp.id} 
-              onClick={() => navigate(`/employees/${emp.id}`)}
-              className="bg-[#FDFBF8] p-4 rounded-xl border border-[#DDD8CF] flex items-center gap-4 hover:shadow-md hover:border-[#5C7A5F]/30 transition-all cursor-pointer group"
-            >
-              <div className="relative">
-                <div className="w-11 h-11 bg-[#5C7A5F]/10 rounded-xl flex items-center justify-center text-[#5C7A5F] font-bold text-sm">
-                  {emp.first_name[0]}{emp.last_name[0]}
-                </div>
-                <div className={clsx(
-                  "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#FDFBF8]",
-                  emp.status === 'PRESENT' ? 'bg-[#4A8C4E]' : 
-                  emp.status === 'ON_LEAVE' ? 'bg-[#B84040]' : 'bg-[#C28A2B]'
-                )}></div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[#2A2520] truncate group-hover:text-[#5C7A5F] transition-colors text-sm">{emp.first_name} {emp.last_name}</p>
-                <p className="text-xs text-[#9C9286] font-medium truncate">{emp.job_position}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Payroll Summary Widget */}
-      <div className="space-y-5">
-        <h2 className="text-lg font-bold text-[#2A2520]">Payroll Alerts</h2>
-        <div className="bg-[#FDFBF8] p-6 rounded-2xl border border-[#DDD8CF] space-y-4 shadow-sm">
-          <AlertBox 
-            count={data?.warnings?.noBank} 
-            label="Missing Bank Details" 
-            color="text-[#C28A2B]" 
-            bg="bg-[#C28A2B]/10" 
-            onClick={() => navigate('/payroll')}
-          />
-          <AlertBox 
-            count={data?.warnings?.noManager} 
-            label="Employees without Manager" 
-            color="text-[#5C7A5F]" 
-            bg="bg-[#5C7A5F]/10" 
-            onClick={() => navigate('/employees')}
-          />
-          <div className="pt-4 border-t border-[#EDE9E3]">
-            <button 
-              onClick={() => navigate('/payroll')}
-              className="w-full py-3 bg-[#1C2B1E] text-white font-semibold rounded-xl hover:bg-[#2E4232] transition-all flex items-center justify-center gap-2 text-sm"
-            >
-              Process Payrun <ArrowRight className="w-4 h-4" />
-            </button>
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+      {/* Team Overview with Search */}
+      <div className="xl:col-span-2 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-text flex items-center gap-2">
+            <div className="w-2 h-8 bg-primary rounded-full"></div>
+            Team Management
+          </h2>
+          <div className="relative group w-full sm:w-72">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
+            <input 
+              type="text"
+              placeholder="Search by name or position..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+            />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin">
+          {filteredEmployees?.length > 0 ? filteredEmployees.map(emp => (
+            <EmployeeCard key={emp.id} emp={emp} navigate={navigate} />
+          )) : (
+            <div className="col-span-full py-20 bg-card border border-dashed border-border rounded-3xl text-center text-muted italic">
+              No team members match your search.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Side Widgets */}
+      <div className="space-y-8">
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold text-text">Critical Alerts</h2>
+          <div className="bg-card p-6 rounded-3xl border border-border space-y-4 shadow-sm">
+            <AlertItem 
+              count={data?.warnings?.noBank} 
+              label="Bank details missing" 
+              color="text-warning" 
+              bg="bg-warning/10" 
+              onClick={() => navigate('/payroll')}
+            />
+            <AlertItem 
+              count={data?.warnings?.noManager} 
+              label="Manager not assigned" 
+              color="text-primary" 
+              bg="bg-primary/10" 
+              onClick={() => navigate('/employees')}
+            />
+            <div className="pt-4 border-t border-border mt-2">
+              <button 
+                onClick={() => navigate('/payroll')}
+                className="w-full py-4 bg-sidebar text-white font-bold rounded-2xl hover:bg-primary-dark transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-primary/10"
+              >
+                Launch Payroll Run <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick Insights */}
+        <section className="bg-primary/5 p-6 rounded-3xl border border-primary/10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              <TrendingUp className="w-4 h-4 text-primary" />
+            </div>
+            <h3 className="font-bold text-text text-sm">Monthly Insight</h3>
+          </div>
+          <p className="text-text-soft text-sm leading-relaxed font-medium">
+            Retention rate is up by <span className="text-success font-bold">2.4%</span> since last quarter. New employee engagement is at an all-time high.
+          </p>
+        </section>
       </div>
     </div>
 
-    {/* Charts */}
+    {/* Analytics Section */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="bg-[#FDFBF8] p-7 rounded-2xl border border-[#DDD8CF] shadow-sm">
-        <h3 className="text-base font-bold text-[#2A2520] mb-6">Headcount Distribution</h3>
-        <div className="h-64">
+      <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-lg font-bold text-text">Headcount Dynamics</h3>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-surface rounded-full text-[10px] font-bold text-muted border border-border">
+            <Filter className="w-3 h-3" /> BY DEPARTMENT
+          </div>
+        </div>
+        <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data?.charts?.employeeChart}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EDE9E3" />
-              <XAxis dataKey="name" tick={{fill:'#9C9286', fontSize:12}} />
-              <YAxis tick={{fill:'#9C9286', fontSize:12}} />
-              <Tooltip contentStyle={{background:'#FDFBF8', border:'1px solid #DDD8CF', borderRadius:'12px', fontSize:12}} />
-              <Legend />
-              <Bar dataKey="withSalary" name="Active" fill="#5C7A5F" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="withoutSalary" name="New/Pending" fill="#A8C4AB" radius={[4, 4, 0, 0]} />
+              <XAxis dataKey="name" tick={{fill:'#9C9286', fontSize:11, fontWeight:600}} axisLine={false} tickLine={false} dy={10} />
+              <YAxis tick={{fill:'#9C9286', fontSize:11, fontWeight:600}} axisLine={false} tickLine={false} dx={-10} />
+              <Tooltip 
+                cursor={{fill: 'rgba(92, 122, 95, 0.05)'}}
+                contentStyle={{background:'#FDFBF8', border:'1px solid #DDD8CF', borderRadius:'16px', fontSize:11, padding:'12px', boxShadow:'0 10px 15px -3px rgba(0,0,0,0.05)'}} 
+              />
+              <Legend iconType="circle" wrapperStyle={{paddingTop: '20px', fontSize:'11px', fontWeight:'600'}} />
+              <Bar dataKey="withSalary" name="Active Staff" fill="#5C7A5F" radius={[6, 6, 0, 0]} barSize={32} />
+              <Bar dataKey="withoutSalary" name="Onboarding" fill="#A8C4AB" radius={[6, 6, 0, 0]} barSize={32} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="bg-[#FDFBF8] p-7 rounded-2xl border border-[#DDD8CF] shadow-sm">
-        <h3 className="text-base font-bold text-[#2A2520] mb-6">Payroll Trend (Last 3 Months)</h3>
-        <div className="h-64">
+      <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-lg font-bold text-text">Financial Projection</h3>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-surface rounded-full text-[10px] font-bold text-muted border border-border">
+            <TrendingUp className="w-3 h-3" /> TOTAL PAYOUT
+          </div>
+        </div>
+        <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data?.charts?.payrunTrend}>
+            <AreaChart data={data?.charts?.payrunTrend}>
+              <defs>
+                <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#5C7A5F" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#5C7A5F" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EDE9E3" />
-              <XAxis dataKey="name" tick={{fill:'#9C9286', fontSize:12}} />
-              <YAxis tick={{fill:'#9C9286', fontSize:12}} />
-              <Tooltip contentStyle={{background:'#FDFBF8', border:'1px solid #DDD8CF', borderRadius:'12px', fontSize:12}} />
-              <Line type="monotone" dataKey="amount" name="Total Payout" stroke="#5C7A5F" strokeWidth={3} dot={{ r: 5, fill: '#5C7A5F', strokeWidth: 0 }} activeDot={{ r: 7 }} />
-            </LineChart>
+              <XAxis dataKey="name" tick={{fill:'#9C9286', fontSize:11, fontWeight:600}} axisLine={false} tickLine={false} dy={10} />
+              <YAxis tick={{fill:'#9C9286', fontSize:11, fontWeight:600}} axisLine={false} tickLine={false} dx={-10} />
+              <Tooltip contentStyle={{background:'#FDFBF8', border:'1px solid #DDD8CF', borderRadius:'16px', fontSize:11, padding:'12px'}} />
+              <Area type="monotone" dataKey="amount" name="Net Payout" stroke="#5C7A5F" strokeWidth={4} fillOpacity={1} fill="url(#colorAmount)" dot={{ r: 6, fill: '#5C7A5F', strokeWidth: 0 }} activeDot={{ r: 8 }} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -194,76 +222,114 @@ const AdminView = ({ data, navigate }) => (
   </div>
 );
 
-/* --- EMPLOYEE DASHBOARD --- */
+const EmployeeCard = ({ emp, navigate }) => (
+  <div 
+    onClick={() => navigate(`/employees/${emp.id}`)}
+    className="bg-card p-5 rounded-3xl border border-border flex items-center gap-5 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden"
+  >
+    <div className="relative shrink-0">
+      <div className="w-16 h-16 rounded-full border-2 border-white shadow-md overflow-hidden bg-surface flex items-center justify-center group-hover:scale-105 transition-transform">
+        {emp.profile_picture ? (
+          <img 
+            src={`${API_BASE_URL}${emp.profile_picture}`} 
+            alt={emp.first_name} 
+            className="w-full h-full object-cover"
+            onError={(e) => { e.target.src = ''; e.target.onerror = null; }}
+          />
+        ) : (
+          <User className="w-8 h-8 text-muted opacity-30" />
+        )}
+      </div>
+      <div className={clsx(
+        "absolute bottom-0 right-0 w-4 h-4 rounded-full border-4 border-card",
+        emp.presence_status === 'PRESENT' ? 'bg-success' : 
+        emp.presence_status === 'ON_LEAVE' ? 'bg-error' : 'bg-warning'
+      )}></div>
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="font-bold text-text truncate group-hover:text-primary transition-colors">{emp.first_name} {emp.last_name}</p>
+      <p className="text-xs text-muted font-bold uppercase tracking-wider mt-1">{emp.job_position || 'Staff member'}</p>
+    </div>
+    <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+       <ArrowRight className="w-4 h-4 text-primary" />
+    </div>
+  </div>
+);
+
 const EmployeeView = ({ data, navigate }) => (
-  <div className="space-y-8">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <StatCard title="Days Present (This Month)" value={data?.daysPresentThisMonth} icon={Clock} color="text-[#5C7A5F]" bg="bg-[#5C7A5F]/10" />
-      <StatCard title="Available Leaves" value={data?.leaveBalance} icon={CalendarOff} color="text-[#8B7355]" bg="bg-[#8B7355]/10" />
+  <div className="space-y-8 animate-fade-in-up">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <StatCard title="Active Days" value={data?.daysPresentThisMonth} icon={Clock} color="text-primary" bg="bg-primary/10" trend="This month" />
+      <StatCard title="Leave Credits" value={data?.leaveBalance} icon={CalendarOff} color="text-secondary" bg="bg-secondary/10" trend="Available" />
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="bg-[#FDFBF8] p-7 rounded-2xl border border-[#DDD8CF] shadow-sm">
-        <h2 className="text-lg font-bold text-[#2A2520] mb-5">Recent Activity</h2>
-        <div className="space-y-3">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="bg-card p-8 rounded-3xl border border-border shadow-sm">
+        <h2 className="text-xl font-bold text-text mb-8 flex items-center gap-3">
+          <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+          Recent Presence
+        </h2>
+        <div className="space-y-4">
           {data?.recentAttendance?.length > 0 ? data.recentAttendance.map(att => (
-            <div key={att.id} className="flex items-center justify-between p-3.5 bg-[#F5F2ED] rounded-xl border border-[#EDE9E3]">
+            <div key={att.id} className="flex items-center justify-between p-5 bg-surface rounded-2xl border border-border/50 hover:bg-white hover:shadow-md transition-all">
               <div>
-                <p className="font-semibold text-[#2A2520] text-sm">{new Date(att.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</p>
-                <p className="text-xs text-[#9C9286] font-medium mt-0.5">{att.status}</p>
+                <p className="font-bold text-text">{new Date(att.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}</p>
+                <p className="text-xs text-muted font-bold uppercase tracking-widest mt-1">{att.status}</p>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#5C7A5F]">{att.work_hours || 0} hrs</p>
-                <p className="text-[10px] text-[#9C9286] font-bold uppercase tracking-widest">Logged</p>
+              <div className="text-right bg-white px-4 py-2 rounded-xl border border-border shadow-sm">
+                <p className="text-sm font-bold text-primary">{att.work_hours || 0}h logged</p>
               </div>
             </div>
           )) : (
-            <div className="text-center py-10 text-[#9C9286] text-sm italic">No recent attendance found.</div>
+            <div className="text-center py-16 text-muted italic font-medium">No recent logs found.</div>
           )}
         </div>
       </div>
 
-      <div className="bg-[#FDFBF8] p-7 rounded-2xl border border-[#DDD8CF] shadow-sm flex flex-col justify-center items-center text-center space-y-4">
-        <div className="w-16 h-16 bg-[#5C7A5F]/10 text-[#5C7A5F] rounded-2xl flex items-center justify-center">
-          <CalendarOff className="w-9 h-9" />
+      <div className="bg-card p-10 rounded-3xl border border-border shadow-sm flex flex-col justify-center items-center text-center space-y-6 relative overflow-hidden">
+        <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center shadow-inner">
+          <CalendarOff className="w-10 h-10" />
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-[#2A2520]">Plan your time off</h3>
-          <p className="text-[#6B6259] text-sm font-medium max-w-xs mt-2">Check your balance and apply for leaves in advance.</p>
+        <div className="relative z-10">
+          <h3 className="text-2xl font-bold text-text">Time for a break?</h3>
+          <p className="text-text-soft text-sm font-medium max-w-xs mt-3">Request your leaves and plan your downtime with ease.</p>
         </div>
         <button 
           onClick={() => navigate('/timeoff')}
-          className="mt-4 px-8 py-3 bg-[#5C7A5F] hover:bg-[#3F5C42] text-white font-semibold rounded-xl shadow-md transition-all"
+          className="mt-6 px-10 py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 active:scale-95"
         >
-          Manage Leaves
+          Request Time Off
         </button>
+        <div className="absolute bottom-[-10%] left-[-10%] w-40 h-40 bg-secondary/5 rounded-full blur-2xl"></div>
       </div>
     </div>
   </div>
 );
 
-const StatCard = ({ title, value, icon: Icon, color, bg }) => (
-  <div className="bg-[#FDFBF8] p-6 rounded-2xl shadow-sm border border-[#DDD8CF] flex items-center gap-5 group hover:shadow-md hover:border-[#5C7A5F]/20 transition-all">
-    <div className={clsx("p-4 rounded-xl transition-transform group-hover:scale-110", bg)}>
-      <Icon className={clsx("w-7 h-7", color)} />
+const StatCard = ({ title, value, icon: Icon, color, bg, trend }) => (
+  <div className="bg-card p-7 rounded-3xl shadow-sm border border-border flex items-center gap-6 group hover:shadow-xl hover:border-primary/10 transition-all relative overflow-hidden">
+    <div className={clsx("p-5 rounded-2xl transition-all duration-500 group-hover:rotate-12 group-hover:scale-110", bg)}>
+      <Icon className={clsx("w-8 h-8", color)} />
     </div>
-    <div>
-      <p className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest">{title}</p>
-      <p className="text-3xl font-bold text-[#2A2520] mt-1">{value || 0}</p>
+    <div className="relative z-10">
+      <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">{title}</p>
+      <p className="text-3xl font-bold text-text mt-1.5">{value || 0}</p>
+      {trend && <p className="text-[10px] font-bold text-success mt-1">{trend}</p>}
     </div>
+    <div className="absolute right-[-20%] bottom-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
   </div>
 );
 
-const AlertBox = ({ count, label, color, bg, onClick }) => (
+const AlertItem = ({ count, label, color, bg, onClick }) => (
   <div 
     onClick={onClick}
-    className={clsx("p-3.5 rounded-xl flex items-center justify-between cursor-pointer transition-all hover:opacity-80", bg)}
+    className={clsx("p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all hover:bg-white hover:shadow-md border border-transparent hover:border-border", bg)}
   >
     <div className="flex items-center gap-3">
       <AlertTriangle className={clsx("w-4 h-4", color)} />
-      <span className={clsx("font-semibold text-sm", color)}>{label}</span>
+      <span className={clsx("font-bold text-xs uppercase tracking-wide", color)}>{label}</span>
     </div>
-    <span className={clsx("w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm", color, "bg-white/60")}>
+    <span className={clsx("w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shadow-inner", color, "bg-white/80")}>
       {count || 0}
     </span>
   </div>

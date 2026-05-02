@@ -13,4 +13,7 @@ router.post('/login', authController.login);
 // GET /api/auth/me
 router.get('/me', authenticateToken, authController.getMe);
 
+// POST /api/auth/change-password
+router.post('/change-password', authenticateToken, authController.changePassword);
+
 module.exports = router;

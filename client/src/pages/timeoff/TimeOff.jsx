@@ -11,6 +11,7 @@ export const TimeOff = () => {
   const [allocations, setAllocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [formError, setFormError] = useState('');
   const [form, setForm] = useState({ employee_id: '', time_off_type_id: '', start_date: '', end_date: '', reason: '' });
 
   const isManagement = ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER'].includes(user?.role);
@@ -36,6 +37,7 @@ export const TimeOff = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
     try {
       await api.post('/timeoff', {
         ...form,
@@ -45,7 +47,9 @@ export const TimeOff = () => {
       setShowForm(false);
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to submit request');
+      const errorMsg = err.response?.data?.error || 'Failed to submit request';
+      setFormError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -113,7 +117,7 @@ export const TimeOff = () => {
           </thead>
           <tbody className="divide-y divide-[#EDE9E3]">
             {loading ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loadingâ€¦</td></tr>
+              <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loading...</td></tr>
             ) : requests.length === 0 ? (
               <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">No requests found.</td></tr>
             ) : (
@@ -160,13 +164,24 @@ export const TimeOff = () => {
       {showForm && <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <form onSubmit={handleSubmit} className="bg-[#FDFBF8] rounded-2xl shadow-2xl border border-[#DDD8CF] w-full max-w-lg p-7">
            <h2 className="text-lg font-bold text-[#2A2520] mb-6">Time Off Request</h2>
+           
+           {/* API Error Alert */}
+           {formError && (
+             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+               {formError}
+             </div>
+           )}
+
            <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#9C9286] uppercase tracking-widest mb-1.5">Time Off Type</label>
                 <select 
                   required
                   value={form.time_off_type_id}
-                  onChange={(e) => setForm({...form, time_off_type_id: e.target.value})}
+                  onChange={(e) => {
+                    setForm({...form, time_off_type_id: e.target.value});
+                    setFormError('');
+                  }}
                   className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5C7A5F]"
                 >
                   <option value="">Select Type</option>
@@ -174,6 +189,11 @@ export const TimeOff = () => {
                     <option key={a.time_off_type_id} value={a.time_off_type_id}>{a.time_off_type_name}</option>
                   ))}
                 </select>
+                {allocations.find(a => a.time_off_type_id == form.time_off_type_id)?.time_off_type_name === 'Sick Leave' && (
+                  <p className="mt-1.5 text-[11px] text-[#5C7A5F] flex items-center gap-1 font-medium">
+                    â„¹ï¸ ℹ️ Sick leave can only be applied for today or a past date.
+                  </p>
+                )}
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
@@ -181,8 +201,20 @@ export const TimeOff = () => {
                   <input 
                     type="date" 
                     required
+                    max={allocations.find(a => a.time_off_type_id == form.time_off_type_id)?.time_off_type_name === 'Sick Leave' ? new Date().toISOString().split('T')[0] : undefined}
                     value={form.start_date}
-                    onChange={(e) => setForm({...form, start_date: e.target.value})}
+                    onChange={(e) => {
+                      setForm({...form, start_date: e.target.value});
+                      if (allocations.find(a => a.time_off_type_id == form.time_off_type_id)?.time_off_type_name === 'Sick Leave') {
+                        if (new Date(e.target.value) > new Date().setHours(23, 59, 59, 999)) {
+                          setFormError('Sick leave cannot be applied for a future date.');
+                        } else {
+                          setFormError('');
+                        }
+                      } else {
+                        setFormError('');
+                      }
+                    }}
                     className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5C7A5F]"
                   />
                 </div>
@@ -191,6 +223,7 @@ export const TimeOff = () => {
                   <input 
                     type="date" 
                     required
+                    max={allocations.find(a => a.time_off_type_id == form.time_off_type_id)?.time_off_type_name === 'Sick Leave' ? new Date().toISOString().split('T')[0] : undefined}
                     value={form.end_date}
                     onChange={(e) => setForm({...form, end_date: e.target.value})}
                     className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5C7A5F]"
@@ -207,8 +240,14 @@ export const TimeOff = () => {
                 ></textarea>
               </div>
               <div className="flex gap-3 pt-4">
-                <button type="submit" className="flex-1 bg-[#5C7A5F] hover:bg-[#3F5C42] text-white py-2.5 rounded-xl font-semibold transition-all">Submit Request</button>
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-[#EDE9E3] hover:bg-[#DDD8CF] text-[#6B6259] py-2.5 rounded-xl font-semibold transition-all">Cancel</button>
+                <button 
+                  type="submit" 
+                  disabled={!!formError || (allocations.find(a => a.time_off_type_id == form.time_off_type_id)?.time_off_type_name === 'Sick Leave' && new Date(form.start_date) > new Date().setHours(23,59,59,999))}
+                  className="flex-1 bg-[#5C7A5F] hover:bg-[#3F5C42] disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-semibold transition-all"
+                >
+                  Submit Request
+                </button>
+                <button type="button" onClick={() => { setShowForm(false); setFormError(''); }} className="flex-1 bg-[#EDE9E3] hover:bg-[#DDD8CF] text-[#6B6259] py-2.5 rounded-xl font-semibold transition-all">Cancel</button>
               </div>
            </div>
         </form>
