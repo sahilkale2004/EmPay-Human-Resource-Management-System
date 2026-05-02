@@ -13,6 +13,8 @@ export const TimeOff = () => {
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState('');
   const [form, setForm] = useState({ employee_id: '', time_off_type_id: '', start_date: '', end_date: '', reason: '' });
+  const [inspectedEmployee, setInspectedEmployee] = useState(null);
+  const [inspectedAllocations, setInspectedAllocations] = useState([]);
 
   const isManagement = ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER'].includes(user?.role);
 
@@ -32,6 +34,30 @@ export const TimeOff = () => {
       toast.error('Failed to load time off data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInspect = async (empId, firstName, lastName) => {
+    if (!isManagement) return;
+    
+    // Toggle off if clicking the same person
+    if (inspectedEmployee?.id === empId) {
+      setInspectedEmployee(null);
+      setInspectedAllocations([]);
+      return;
+    }
+
+    try {
+      const res = await api.get(`/timeoff/allocation?employee_id=${empId}`);
+      if (res.data.success) {
+        setInspectedEmployee({ id: empId, name: `${firstName} ${lastName}` });
+        setInspectedAllocations(res.data.data);
+        toast.success(`Viewing leaves for ${firstName}`);
+        // Scroll to top to see cards
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (err) {
+      toast.error('Failed to load employee allocations');
     }
   };
 
@@ -58,6 +84,14 @@ export const TimeOff = () => {
       await api.put(`/timeoff/${id}/approve`);
       toast.success('Approved');
       fetchData();
+      // If we are inspecting someone, refresh their allocations too if it was their request
+      if (inspectedEmployee) {
+        const req = requests.find(r => r.id === id);
+        if (req && req.employee_id === inspectedEmployee.id) {
+           const res = await api.get(`/timeoff/allocation?employee_id=${inspectedEmployee.id}`);
+           setInspectedAllocations(res.data.data);
+        }
+      }
     } catch (err) {
       toast.error('Failed to approve');
     }
@@ -73,27 +107,49 @@ export const TimeOff = () => {
     }
   };
 
+  const displayAllocations = inspectedEmployee ? inspectedAllocations : allocations;
+
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[2rem] border border-border shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-text">Time Off</h1>
-          <p className="text-muted text-xs font-bold uppercase tracking-widest mt-1">Manage leave requests and allocations</p>
+          <h1 className="text-2xl font-bold text-text">
+            Time Off {inspectedEmployee && <span className="text-primary ml-2">/ {inspectedEmployee.name}</span>}
+          </h1>
+          <p className="text-muted text-xs font-bold uppercase tracking-widest mt-1">
+            {inspectedEmployee ? `Inspecting ${inspectedEmployee.name}'s balance` : 'Manage leave requests and allocations'}
+          </p>
         </div>
-        <button 
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-2xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-primary/20 active:scale-95"
-        >
-          <Plus className="w-5 h-5" /> New Request
-        </button>
+        <div className="flex gap-3">
+          {inspectedEmployee && (
+            <button 
+              onClick={() => { setInspectedEmployee(null); setInspectedAllocations([]); }}
+              className="flex items-center gap-2 bg-surface hover:bg-border/30 text-text-soft px-6 py-3 rounded-2xl text-sm font-bold uppercase tracking-wider transition-all border border-border active:scale-95"
+            >
+              Reset View
+            </button>
+          )}
+          <button 
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-2xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-primary/20 active:scale-95"
+          >
+            <Plus className="w-5 h-5" /> New Request
+          </button>
+        </div>
       </div>
 
       {/* Summary Boxes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {allocations.map(alloc => (
-          <div key={alloc.id} className="bg-white border border-border p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-            <div className="absolute top-[-20%] right-[-10%] w-24 h-24 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+        {displayAllocations.length > 0 ? displayAllocations.map(alloc => (
+          <div key={alloc.id} className={clsx(
+            "bg-white border p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500",
+            inspectedEmployee ? "border-primary/30" : "border-border"
+          )}>
+            <div className={clsx(
+              "absolute top-[-20%] right-[-10%] w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-700",
+              inspectedEmployee ? "bg-primary/10" : "bg-primary/5"
+            )}></div>
             <h3 className="text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-2">{alloc.time_off_type_name}</h3>
             <p className="text-3xl font-bold text-text mb-4">{parseFloat(alloc.remaining_days).toFixed(0)} <span className="text-sm font-bold text-muted uppercase">Days Left</span></p>
             <div className="h-2 bg-surface rounded-full overflow-hidden border border-border/50">
@@ -102,8 +158,17 @@ export const TimeOff = () => {
                 style={{width: `${Math.min((parseFloat(alloc.remaining_days)/20)*100, 100)}%`}}
               ></div>
             </div>
+            {inspectedEmployee && (
+              <div className="mt-4 text-[10px] font-black text-primary uppercase tracking-widest animate-pulse">
+                Viewing Individual Balance
+              </div>
+            )}
           </div>
-        ))}
+        )) : (
+          <div className="col-span-full bg-white border border-dashed border-border p-12 rounded-[2.5rem] text-center text-muted italic text-sm">
+            No leave allocations defined for this user.
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -126,8 +191,22 @@ export const TimeOff = () => {
               <tr><td colSpan={6} className="px-6 py-8 text-center text-muted text-sm italic">No requests found.</td></tr>
             ) : (
               requests.map((req) => (
-                <tr key={req.id} className="hover:bg-surface/50 transition-colors">
-                  <td className="px-6 py-4 text-text font-bold">{req.first_name} {req.last_name}</td>
+                <tr key={req.id} className={clsx(
+                  "hover:bg-surface/50 transition-colors",
+                  inspectedEmployee?.id === req.employee_id && "bg-primary/[0.03]"
+                )}>
+                  <td className="px-6 py-4">
+                    <button 
+                      onClick={() => handleInspect(req.employee_id, req.first_name, req.last_name)}
+                      className={clsx(
+                        "text-text font-bold hover:text-primary transition-colors text-left outline-none",
+                        inspectedEmployee?.id === req.employee_id && "text-primary"
+                      )}
+                    >
+                      {req.first_name} {req.last_name}
+                      {inspectedEmployee?.id === req.employee_id && <span className="ml-2 text-[10px] font-black uppercase tracking-widest">(Viewing)</span>}
+                    </button>
+                  </td>
                   <td className="px-6 py-4 text-text-soft font-medium">{new Date(req.start_date).toLocaleDateString('en-GB')}</td>
                   <td className="px-6 py-4 text-text-soft font-medium">{new Date(req.end_date).toLocaleDateString('en-GB')}</td>
                   <td className="px-6 py-4 text-primary font-bold">{req.time_off_type_name}</td>
