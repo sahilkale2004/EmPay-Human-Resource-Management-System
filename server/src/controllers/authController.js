@@ -74,8 +74,9 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    const [employees] = await pool.query('SELECT id FROM employees WHERE user_id = ?', [user.id]);
+    const [employees] = await pool.query('SELECT id, profile_picture FROM employees WHERE user_id = ?', [user.id]);
     const employeeId = employees.length > 0 ? employees[0].id : null;
+    const profilePicture = employees.length > 0 ? employees[0].profile_picture : null;
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, employee_id: employeeId },
@@ -87,7 +88,14 @@ const login = async (req, res) => {
       success: true,
       data: {
         token,
-        user: { id: user.id, login_id: user.login_id, email: user.email, role: user.role, employee_id: employeeId }
+        user: { 
+          id: user.id, 
+          login_id: user.login_id, 
+          email: user.email, 
+          role: user.role, 
+          employee_id: employeeId,
+          profile_picture: profilePicture 
+        }
       }
     });
   } catch (err) {
@@ -103,17 +111,54 @@ const getMe = async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
     
-    const [employees] = await pool.query('SELECT id FROM employees WHERE user_id = ?', [req.user.id]);
+    const [employees] = await pool.query('SELECT id, profile_picture FROM employees WHERE user_id = ?', [req.user.id]);
     const employeeId = employees.length > 0 ? employees[0].id : null;
+    const profilePicture = employees.length > 0 ? employees[0].profile_picture : null;
 
-    res.json({ success: true, data: { ...rows[0], employee_id: employeeId } });
+    res.json({ success: true, data: { ...rows[0], employee_id: employeeId, profile_picture: profilePicture } });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Both current and new passwords are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, error: 'New password must be at least 6 characters long' });
+    }
+
+    const [users] = await pool.query('SELECT password_hash FROM users WHERE id = ?', [userId]);
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, error: 'User account not found' });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, users[0].password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, error: 'Incorrect current password. Please try again.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newHash = await bcrypt.hash(newPassword, salt);
+    
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, userId]);
+
+    res.json({ success: true, message: 'Your password has been updated successfully.' });
+  } catch (err) {
+    console.error('CRITICAL: Change password error:', err);
+    res.status(500).json({ success: false, error: 'Database error. Please contact system administrator.' });
   }
 };
 
 module.exports = {
   register,
   login,
-  getMe
+  getMe,
+  changePassword
 };

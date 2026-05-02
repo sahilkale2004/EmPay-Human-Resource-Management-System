@@ -13,7 +13,13 @@ export const AuthProvider = ({ children }) => {
     
     if (storedUser && token) {
       try {
-        setUser(JSON.parse(storedUser));
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        // Socket connection
+        import('../services/socket').then(({ default: socket }) => {
+          socket.connect();
+          socket.emit('register', { userId: userData.id, role: userData.role });
+        });
       } catch (e) {
         localStorage.removeItem('empay_user');
         localStorage.removeItem('empay_token');
@@ -26,9 +32,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('empay_token', token);
     localStorage.setItem('empay_user', JSON.stringify(userData));
     setUser(userData);
+    // Socket connection
+    import('../services/socket').then(({ default: socket }) => {
+      socket.connect();
+      socket.emit('register', { userId: userData.id, role: userData.role });
+    });
   };
 
   const logout = () => {
+    import('../services/socket').then(({ default: socket }) => {
+      socket.disconnect();
+    });
     localStorage.removeItem('empay_token');
     localStorage.removeItem('empay_user');
     setUser(null);

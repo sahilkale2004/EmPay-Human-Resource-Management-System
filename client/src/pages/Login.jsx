@@ -3,7 +3,8 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
-import { Banknote, Loader2, Lock, User } from 'lucide-react';
+import { Banknote, Loader2, User } from 'lucide-react';
+import PasswordInput from '../components/ui/PasswordInput';
 
 export const Login = () => {
   const { user, login } = useAuth();
@@ -93,20 +94,13 @@ export const Login = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[#2A2520] text-sm font-semibold mb-1.5">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9C9286]" />
-                  <input
-                    type="password"
-                    className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#2A2520] placeholder-[#9C9286] focus:outline-none focus:border-[#5C7A5F] focus:ring-2 focus:ring-[#5C7A5F]/15 transition-all"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+              <PasswordInput
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+              />
 
               <button
                 type="submit"

@@ -55,8 +55,15 @@
   100% { background-position: 200% 0; }
 }
 
+@keyframes notif-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
 .animate-blob       { animation: blob 7s infinite; }
 .animate-fade-in-up { animation: fade-in-up 0.4s ease both; }
+.animate-notif-pop  { animation: notif-pop 0.6s ease-out; }
 .animation-delay-2000 { animation-delay: 2s; }
 .animation-delay-4000 { animation-delay: 4s; }
 
