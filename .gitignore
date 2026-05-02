@@ -30,5 +30,3 @@ Thumbs.db
 # Uploads / generated files
 server/uploads/
 server/generated/
-
-EMPAY_BUILD_SPEC.md
