@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { generateLoginId } = require('../services/idGenerator');
+const { initializeAllocations } = require('../services/timeOffService');
 
 const register = async (req, res) => {
   const connection = await pool.getConnection();
@@ -38,6 +39,8 @@ const register = async (req, res) => {
       [userId, firstName, lastName, phone || null, dateOfJoining]
     );
 
+    await initializeAllocations(empResult.insertId, connection);
+
     await connection.commit();
     res.status(201).json({ success: true, message: 'Registration successful', data: { login_id: loginId } });
   } catch (err) {
@@ -51,13 +54,16 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { loginId, password } = req.body;
+    const { loginIdOrEmail, password } = req.body;
     
-    if (!loginId || !password) {
+    // Support both loginId (from tests) and loginIdOrEmail (from frontend)
+    const identifier = loginIdOrEmail || req.body.loginId;
+    
+    if (!identifier || !password) {
       return res.status(400).json({ success: false, error: 'Login ID and password are required' });
     }
 
-    const [rows] = await pool.query('SELECT * FROM users WHERE (email = ? OR login_id = ?) AND is_active = TRUE', [loginId, loginId]);
+    const [rows] = await pool.query('SELECT * FROM users WHERE (email = ? OR login_id = ?) AND is_active = TRUE', [identifier, identifier]);
     if (rows.length === 0) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }

@@ -14,9 +14,9 @@ router.get('/allocation', authenticateToken, timeoffController.getAllocations);
 router.post('/', authenticateToken, timeoffController.createTimeOffRequest);
 
 // PUT /api/timeoff/:id/approve
-router.put('/:id/approve', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER']), timeoffController.approveRequest);
+router.put('/:id/approve', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER']), timeoffController.approveRequest);
 
 // PUT /api/timeoff/:id/refuse
-router.put('/:id/refuse', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER']), timeoffController.refuseRequest);
+router.put('/:id/refuse', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER']), timeoffController.refuseRequest);
 
 module.exports = router;

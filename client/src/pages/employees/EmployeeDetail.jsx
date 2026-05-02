@@ -18,6 +18,10 @@ export const EmployeeDetail = () => {
   const [activeTab, setActiveTab] = useState('Resume');
   const [formData, setFormData] = useState({});
 
+  const canEdit = ['ADMIN', 'HR_OFFICER'].includes(user?.role);
+  const isSelf = user?.employee_id === parseInt(id);
+  const isReadOnly = !canEdit && !isSelf;
+
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
@@ -112,7 +116,7 @@ const ResumeTab = ({ employee }) => (
       <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-800">About</h3>
-          <Edit2 className="w-4 h-4 text-gray-400 cursor-pointer" />
+          {!isReadOnly && <Edit2 className="w-4 h-4 text-gray-400 cursor-pointer" />}
         </div>
         <p className="text-sm text-gray-600 leading-relaxed">
           {employee.about_text || 'No description provided.'}
@@ -131,17 +135,17 @@ const ResumeTab = ({ employee }) => (
       <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-800">Skills</h3>
-          <Plus className="w-4 h-4 text-gray-400 cursor-pointer" />
+          {!isReadOnly && <Plus className="w-4 h-4 text-gray-400 cursor-pointer" />}
         </div>
-        <div className="text-sm text-gray-400 italic">+ Add Skills</div>
+        {!isReadOnly && <div className="text-sm text-gray-400 italic">+ Add Skills</div>}
       </div>
 
       <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-800">Certification</h3>
-          <Plus className="w-4 h-4 text-gray-400 cursor-pointer" />
+          {!isReadOnly && <Plus className="w-4 h-4 text-gray-400 cursor-pointer" />}
         </div>
-        <div className="text-sm text-gray-400 italic">+ Add Certification</div>
+        {!isReadOnly && <div className="text-sm text-gray-400 italic">+ Add Certification</div>}
       </div>
     </div>
   </div>

@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
 const { generateLoginId } = require('../services/idGenerator');
+const { initializeAllocations } = require('../services/timeOffService');
 
 const getAllEmployees = async (req, res) => {
   try {
@@ -95,6 +96,8 @@ const createEmployee = async (req, res) => {
         data.ifsc_code || null, data.bank_name || null
       ]
     );
+
+    await initializeAllocations(empResult.insertId, connection);
 
     await connection.commit();
     res.status(201).json({ 

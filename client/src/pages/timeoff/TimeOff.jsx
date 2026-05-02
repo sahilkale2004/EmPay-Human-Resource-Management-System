@@ -13,7 +13,7 @@ export const TimeOff = () => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ employee_id: '', time_off_type_id: '', start_date: '', end_date: '', reason: '' });
 
-  const isManagement = ['ADMIN', 'HR_OFFICER'].includes(user?.role);
+  const isManagement = ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER'].includes(user?.role);
 
   useEffect(() => {
     fetchData();
