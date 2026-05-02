@@ -82,7 +82,7 @@ export const Payroll = () => {
       toast.success('Payrun validated and closed');
       fetchData();
     } catch (err) {
-      toast.error('Validation failed');
+      toast.error(err.response?.data?.error || 'Validation failed');
     }
   };
 
@@ -135,12 +135,12 @@ export const Payroll = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <SummaryBox title="Total Employees" value={stats.totalEmployees} link="View Directory" icon={Users} color="text-primary" bg="bg-primary/5" />
-            <SummaryBox title="Payroll Budget" value={`₹${parseFloat(stats.totalCost).toLocaleString()}`} link="View Budget" icon={CreditCard} color="text-secondary" bg="bg-secondary/5" />
+            <SummaryBox title="Payroll Budget" value={`₹${parseFloat(stats.totalCost).toLocaleString('en-IN')}`} link="View Budget" icon={CreditCard} color="text-secondary" bg="bg-secondary/5" />
             {canManage && (
               <div className="bg-white border border-border p-7 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
                 <div className="absolute top-[-20%] right-[-10%] w-24 h-24 bg-primary/5 rounded-full group-hover:scale-150 transition-transform"></div>
                 <h3 className="text-muted font-black text-[10px] uppercase tracking-[0.2em] mb-3">Company Fund</h3>
-                <span className="text-3xl font-bold text-text mb-3">₹{parseFloat(fundBalance).toLocaleString()}</span>
+                <span className="text-3xl font-bold text-text mb-3">₹{parseFloat(fundBalance).toLocaleString('en-IN')}</span>
                 <button 
                   onClick={handleAddFunds} 
                   className="text-[10px] font-black text-primary uppercase tracking-[0.1em] hover:bg-primary/10 bg-primary/5 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 border border-primary/10"
@@ -180,8 +180,10 @@ export const Payroll = () => {
                     </td>
                     {canManage && (
                       <td className="px-6 py-3.5 flex items-center justify-center gap-2">
-                        {run.status === 'DRAFT' && (
-                          <button onClick={() => handleGenerate(run.id)} className="text-xs font-bold text-[#5C7A5F] hover:underline uppercase">Process</button>
+                        {(run.status === 'DRAFT' || run.status === 'DONE') && (
+                          <button onClick={() => handleGenerate(run.id)} className="text-xs font-bold text-[#5C7A5F] hover:underline uppercase">
+                            {run.status === 'DONE' ? 'Re-Process' : 'Process'}
+                          </button>
                         )}
                         {run.status === 'DONE' && (
                           <button onClick={() => handleValidate(run.id)} className="text-xs font-bold text-[#B84040] hover:underline uppercase">Validate</button>
@@ -324,6 +326,9 @@ const PayslipDetail = ({ slip, onBack }) => (
             <SlipItem label="Basic Salary" value={slip.basic_salary} />
             <SlipItem label="House Rent Allowance" value={slip.hra} />
             <SlipItem label="Standard Allowance" value={slip.standard_allowance} />
+            {Number(slip.performance_bonus) > 0 && <SlipItem label="Performance Bonus" value={slip.performance_bonus} />}
+            {Number(slip.travel_allowance) > 0 && <SlipItem label="Travel Allowance" value={slip.travel_allowance} />}
+            {Number(slip.food_allowance) > 0 && <SlipItem label="Food Allowance" value={slip.food_allowance} />}
           </div>
         </div>
         <div className="space-y-4">

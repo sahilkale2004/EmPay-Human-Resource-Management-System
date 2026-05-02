@@ -315,12 +315,12 @@ const saveSalary = async (req, res) => {
     if (existing.length > 0) {
       await pool.query(
         `UPDATE salary_structures SET 
-          wage_type=?, monthly_wage=?, yearly_wage=?, basic_pct=?, hra_pct=?, 
+          wage_type=?, monthly_wage=?, yearly_wage=?, hourly_rate=?, basic_pct=?, hra_pct=?, 
           standard_allowance=?, performance_bonus=?, travel_allowance=?, food_allowance=?, 
           pf_pct=?, professional_tax=?, effective_from=?
          WHERE employee_id=?`,
         [
-          s.wage_type, monthlyWage, yearlyWage, s.basic_pct, s.hra_pct,
+          s.wage_type, monthlyWage, yearlyWage, s.hourly_rate || 0, s.basic_pct, s.hra_pct,
           stdAmount, perfAmount, travelAmount, foodAmount,
           s.pf_pct || 12, s.professional_tax || 200, toMySQLDate(s.effective_from || new Date()), id
         ]
@@ -328,12 +328,12 @@ const saveSalary = async (req, res) => {
     } else {
       await pool.query(
         `INSERT INTO salary_structures (
-          employee_id, wage_type, monthly_wage, yearly_wage, basic_pct, hra_pct,
+          employee_id, wage_type, monthly_wage, yearly_wage, hourly_rate, basic_pct, hra_pct,
           standard_allowance, performance_bonus, travel_allowance, food_allowance, pf_pct, 
           professional_tax, effective_from
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          id, s.wage_type, monthlyWage, yearlyWage, s.basic_pct, s.hra_pct,
+          id, s.wage_type, monthlyWage, yearlyWage, s.hourly_rate || 0, s.basic_pct, s.hra_pct,
           stdAmount, perfAmount, travelAmount, foodAmount,
           s.pf_pct || 12, s.professional_tax || 200, toMySQLDate(s.effective_from || new Date())
         ]

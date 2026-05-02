@@ -37,8 +37,12 @@ const createPayrun = async (req, res) => {
 
 const generatePayslips = async (req, res) => {
   try {
+    const { id } = req.params;
     const result = await generatePayslipsForPayrun(id);
+    
+    // Update payrun status to DONE after successful generation
     await pool.query(`UPDATE payruns SET status = 'DONE' WHERE id = ?`, [id]);
+    
     res.json({ success: true, message: `Generated ${result.count} payslips for payrun ${id}` });
   } catch (err) {
     console.error('Generate payslips error:', err);
@@ -52,9 +56,17 @@ const validatePayrun = async (req, res) => {
     const { id } = req.params;
     await connection.beginTransaction();
     
+    // Check payrun status first
+    const [statusRows] = await connection.query(`SELECT status FROM payruns WHERE id = ?`, [id]);
+    if (statusRows.length === 0) throw new Error('Payrun not found');
+    if (statusRows[0].status === 'VALIDATED') {
+      await connection.rollback();
+      return res.status(400).json({ success: false, error: 'This payrun has already been validated and paid.' });
+    }
+
     // Check total cost
     const [costRows] = await connection.query(`SELECT SUM(net_payable) as total FROM payslips WHERE payrun_id = ?`, [id]);
-    const totalCost = costRows[0].total || 0;
+    const totalCost = Number(costRows[0].total || 0);
     
     // Check available fund
     const [fundRows] = await connection.query(`SELECT available_balance FROM company_funds ORDER BY id DESC LIMIT 1`);
@@ -62,20 +74,20 @@ const validatePayrun = async (req, res) => {
       await connection.query(`INSERT INTO company_funds (available_balance) VALUES (0)`);
       fundRows.push({ available_balance: 0 });
     }
-    const currentFund = fundRows[0].available_balance;
+    const currentFund = Number(fundRows[0].available_balance);
     
-    if (parseFloat(currentFund) < parseFloat(totalCost)) {
+    if (currentFund < totalCost) {
       await connection.rollback();
-      return res.status(400).json({ success: false, error: 'Insufficient company funds to validate this payrun. Please add funds.' });
+      return res.status(400).json({ success: false, error: `Insufficient funds. Need ₹${totalCost.toLocaleString()} but only ₹${currentFund.toLocaleString()} available.` });
     }
     
-    // Deduct fund
+    // Deduct fund (Effective reduction)
     await connection.query(`UPDATE company_funds SET available_balance = available_balance - ? ORDER BY id DESC LIMIT 1`, [totalCost]);
     
     await connection.query(`UPDATE payruns SET status = 'VALIDATED' WHERE id = ?`, [id]);
     await connection.query(`UPDATE payslips SET status = 'DONE' WHERE payrun_id = ?`, [id]);
     await connection.commit();
-    res.json({ success: true, message: 'Payrun validated successfully' });
+    res.json({ success: true, message: `Payrun validated. ₹${totalCost.toLocaleString()} deducted from company funds.` });
   } catch (err) {
     await connection.rollback();
     console.error('Validate payrun error:', err);
@@ -199,12 +211,19 @@ const getPayrollReportSummary = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
-        SUM(basic_salary) as total_basic,
-        SUM(hra + standard_allowance + performance_bonus + travel_allowance + food_allowance) as total_allowances,
-        SUM(pf_employee + professional_tax) as total_deductions,
-        SUM(net_payable) as total_net
+        COUNT(DISTINCT employee_id) as employee_count,
+        SUM(IFNULL(basic_salary, 0)) as total_basic,
+        SUM(
+          IFNULL(hra, 0) + 
+          IFNULL(standard_allowance, 0) + 
+          IFNULL(performance_bonus, 0) + 
+          IFNULL(travel_allowance, 0) + 
+          IFNULL(food_allowance, 0)
+        ) as total_allowances,
+        SUM(IFNULL(pf_employee, 0) + IFNULL(professional_tax, 0)) as total_deductions,
+        SUM(IFNULL(net_payable, 0)) as total_net
       FROM payslips 
-      WHERE status = 'DONE'
+      WHERE status IN ('DONE', 'VALIDATED')
     `);
     res.json({ success: true, data: rows[0] });
   } catch (err) {

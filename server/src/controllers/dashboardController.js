@@ -22,16 +22,23 @@ const getDashboardStats = async (req, res) => {
       const [[{ noBank }]] = await pool.query('SELECT COUNT(*) as noBank FROM employees WHERE bank_account_number IS NULL OR bank_account_number = ""');
       const [[{ noManager }]] = await pool.query('SELECT COUNT(*) as noManager FROM employees WHERE manager_id IS NULL');
 
-      // 4. Charts - Headcount Distribution
-      const [deptStats] = await pool.query('SELECT department as name, COUNT(*) as withSalary FROM employees GROUP BY department');
+      // 4. Charts - Headcount Distribution (Active only, handle NULL departments)
+      const [deptStats] = await pool.query(`
+        SELECT IFNULL(department, 'Unassigned') as name, COUNT(*) as withSalary 
+        FROM employees e
+        JOIN users u ON e.user_id = u.id
+        WHERE u.is_active = TRUE
+        GROUP BY department
+      `);
       
-      // 5. Charts - Payroll Trend
+      // 5. Charts - Payroll Trend (Only confirmed payruns)
       const [payrollTrends] = await pool.query(
-        `SELECT pr.name, SUM(p.net_payable) as amount 
+        `SELECT pr.name, SUM(IFNULL(p.net_payable, 0)) as amount 
          FROM payslips p 
          JOIN payruns pr ON p.payrun_id = pr.id 
+         WHERE p.status IN ('DONE', 'VALIDATED')
          GROUP BY pr.id 
-         ORDER BY pr.created_at DESC 
+         ORDER BY pr.created_at ASC 
          LIMIT 6`
       );
 

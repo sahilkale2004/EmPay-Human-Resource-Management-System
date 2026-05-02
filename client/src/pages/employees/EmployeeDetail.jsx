@@ -564,7 +564,8 @@ const SalaryTab = ({ employeeId, isSelf, currentUser }) => {
     const travelAmt = monthly * (travelPct / 100);
     const foodAmt = monthly * (foodPct / 100);
 
-    const totalPct = basicPct + stdPct + perfPct + travelPct + foodPct;
+    const hraContribPct = basicPct * (hraPct / 100);
+    const totalPct = basicPct + hraContribPct + stdPct + perfPct + travelPct + foodPct;
     const grossAmt = basicAmt + hraAmt + stdAmt + perfAmt + travelAmt + foodAmt;
 
     const pfPct = Number(editData.pf_pct || 12);
@@ -706,7 +707,7 @@ const SalaryTab = ({ employeeId, isSelf, currentUser }) => {
                       <p className="text-[10px] font-black text-muted uppercase tracking-widest">PF (Employee)</p>
                       <p className="text-xs font-bold text-text-soft mt-1">12% of Basic</p>
                     </div>
-                    <p className="text-sm font-bold text-error">- ₹{totals.pfAmt.toLocaleString()}</p>
+                    <p className="text-sm font-bold text-error">- ₹{totals.pfAmt.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="flex justify-between items-center pb-4 border-b border-border/50">
                     <div>
@@ -718,7 +719,7 @@ const SalaryTab = ({ employeeId, isSelf, currentUser }) => {
                   
                   <div className="bg-success/5 p-6 rounded-3xl border border-success/20 space-y-2">
                     <p className="text-[10px] font-black text-success uppercase tracking-widest">Estimated Monthly Take-home</p>
-                    <p className="text-3xl font-bold text-success leading-none mt-2">₹{Math.max(0, totals.netAmt).toLocaleString(undefined, {minimumFractionDigits:2})}</p>
+                    <p className="text-3xl font-bold text-success leading-none mt-2">₹{Math.max(0, totals.netAmt).toLocaleString('en-IN', {minimumFractionDigits:2})}</p>
                   </div>
 
                   <div className="flex gap-4 pt-4">
@@ -744,8 +745,8 @@ const SalaryTab = ({ employeeId, isSelf, currentUser }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           <Section title="Structure Summary" icon={TrendingUp}>
             <SummaryItem label="Wage Type" value={salary.wage_type} />
-            <SummaryItem label="Gross Monthly" value={`₹${Number(salary.monthly_wage).toLocaleString()}`} highlight />
-            <SummaryItem label="Basic Component" value={`₹${Number(salary.basic_pct * salary.monthly_wage / 100).toLocaleString()} (${salary.basic_pct}%)`} />
+            <SummaryItem label="Gross Monthly" value={`₹${Number(salary.monthly_wage).toLocaleString('en-IN')}`} highlight />
+            <SummaryItem label="Basic Component" value={`₹${Number(salary.basic_pct * salary.monthly_wage / 100).toLocaleString('en-IN')} (${salary.basic_pct}%)`} />
             <SummaryItem label="Effective Date" value={new Date(salary.effective_from).toLocaleDateString()} />
           </Section>
           <Section title="Allowances" icon={CheckCircle2}>

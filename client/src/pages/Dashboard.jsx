@@ -211,8 +211,17 @@ const AdminView = ({ data, filteredEmployees, searchQuery, setSearchQuery, navig
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EDE9E3" />
               <XAxis dataKey="name" tick={{fill:'#9C9286', fontSize:11, fontWeight:600}} axisLine={false} tickLine={false} dy={10} />
-              <YAxis tick={{fill:'#9C9286', fontSize:11, fontWeight:600}} axisLine={false} tickLine={false} dx={-10} />
-              <Tooltip contentStyle={{background:'#FDFBF8', border:'1px solid #DDD8CF', borderRadius:'16px', fontSize:11, padding:'12px'}} />
+              <YAxis 
+                tick={{fill:'#9C9286', fontSize:11, fontWeight:600}} 
+                axisLine={false} 
+                tickLine={false} 
+                dx={-10} 
+                tickFormatter={(val) => `₹${val.toLocaleString('en-IN')}`}
+              />
+              <Tooltip 
+                formatter={(val) => [`₹${val.toLocaleString('en-IN')}`, 'Net Payout']}
+                contentStyle={{background:'#FDFBF8', border:'1px solid #DDD8CF', borderRadius:'16px', fontSize:11, padding:'12px'}} 
+              />
               <Area type="monotone" dataKey="amount" name="Net Payout" stroke="#5C7A5F" strokeWidth={4} fillOpacity={1} fill="url(#colorAmount)" dot={{ r: 6, fill: '#5C7A5F', strokeWidth: 0 }} activeDot={{ r: 8 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -319,7 +328,7 @@ const StatCard = ({ title, value, icon: Icon, color, bg, trend }) => (
     </div>
     <div className="relative z-10">
       <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">{title}</p>
-      <p className="text-3xl font-bold text-text mt-1.5">{value || 0}</p>
+      <p className="text-3xl font-bold text-text mt-1.5">{typeof value === 'number' ? value.toLocaleString('en-IN') : value || 0}</p>
       {trend && <p className="text-[10px] font-bold text-success mt-1">{trend}</p>}
     </div>
     <div className="absolute right-[-20%] bottom-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>

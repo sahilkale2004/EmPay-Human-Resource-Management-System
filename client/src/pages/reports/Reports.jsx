@@ -96,7 +96,10 @@ const SalaryAttachmentReport = ({ onBack }) => {
         </button>
         <h2 className="font-black text-text uppercase tracking-[0.3em] text-[10px]">Salary Attachment Report</h2>
         <div className="flex gap-2">
-          <button className="p-3 bg-surface hover:bg-border/30 rounded-xl transition-all text-text-soft">
+          <button 
+            onClick={() => window.print()}
+            className="p-3 bg-surface hover:bg-border/30 rounded-xl transition-all text-text-soft"
+          >
             <Printer className="w-4 h-4" />
           </button>
           <button className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all">
@@ -129,26 +132,33 @@ const SalaryAttachmentReport = ({ onBack }) => {
             </thead>
             <tbody className="divide-y divide-border/50">
               <tr className="bg-primary/[0.02]">
+                <td colSpan={2} className="px-6 py-4 text-[10px] font-black text-primary uppercase tracking-[0.2em]">Census & Headcount</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Total Employees Processed</td>
+                <td className="p-6 text-right text-text font-black text-lg">{data.employee_count || 0} Members</td>
+              </tr>
+              <tr className="bg-primary/[0.02]">
                 <td colSpan={2} className="px-6 py-4 text-[10px] font-black text-primary uppercase tracking-[0.2em]">Earnings & Benefits</td>
               </tr>
               <tr>
                 <td className="p-6 text-text font-bold">Basic Salary Pool</td>
-                <td className="p-6 text-right text-text font-black text-lg">₹{parseFloat(data.total_basic || 0).toLocaleString()}</td>
+                <td className="p-6 text-right text-text font-black text-lg">₹{parseFloat(data.total_basic || 0).toLocaleString('en-IN')}</td>
               </tr>
               <tr>
                 <td className="p-6 text-text font-bold">Allowances (HRA, TA, etc.)</td>
-                <td className="p-6 text-right text-text font-black text-lg">₹{parseFloat(data.total_allowances || 0).toLocaleString()}</td>
+                <td className="p-6 text-right text-text font-black text-lg">₹{parseFloat(data.total_allowances || 0).toLocaleString('en-IN')}</td>
               </tr>
               <tr className="bg-error/[0.02]">
                 <td colSpan={2} className="px-6 py-4 text-[10px] font-black text-error uppercase tracking-[0.2em]">Statutory Deductions</td>
               </tr>
               <tr>
                 <td className="p-6 text-text font-bold">Total Deductions (Tax, PF)</td>
-                <td className="p-6 text-right text-error font-black text-lg">₹{parseFloat(data.total_deductions || 0).toLocaleString()}</td>
+                <td className="p-6 text-right text-error font-black text-lg">₹{parseFloat(data.total_deductions || 0).toLocaleString('en-IN')}</td>
               </tr>
               <tr className="bg-text text-white">
                 <td className="p-8 text-white font-black uppercase tracking-[0.2em] text-xs">Total Net Disbursement</td>
-                <td className="p-8 text-right text-white font-black text-3xl tracking-tighter">₹{parseFloat(data.total_net || 0).toLocaleString()}</td>
+                <td className="p-8 text-right text-white font-black text-3xl tracking-tighter">₹{parseFloat(data.total_net || 0).toLocaleString('en-IN')}</td>
               </tr>
             </tbody>
           </table>

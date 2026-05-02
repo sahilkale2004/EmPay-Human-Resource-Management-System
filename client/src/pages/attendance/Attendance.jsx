@@ -21,7 +21,10 @@ export const Attendance = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
       const res = await api.get(`/attendance?date=${dateStr}`);
       setRecords(res.data.data || []);
     } catch (err) {
@@ -181,7 +184,7 @@ const StatBox = ({ label, value, sub, icon: Icon, color, bg }) => (
     <div className="relative z-10">
       <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{label}</p>
       <div className="flex items-baseline gap-2 mt-1">
-        <span className="text-2xl font-bold text-text">{value}</span>
+        <span className="text-2xl font-bold text-text">{typeof value === 'number' ? value.toLocaleString('en-IN') : value}</span>
         {sub && <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{sub}</span>}
       </div>
     </div>

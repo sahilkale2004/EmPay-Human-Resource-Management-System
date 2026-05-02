@@ -148,22 +148,20 @@ const generatePayslipsForPayrun = async (payrunId) => {
 
 
       // Components as % of Gross
-      const basicSalary = grossWage * (structure.basic_pct / 100);
-      const hra = basicSalary * (structure.hra_pct / 100);
+      const basicSalary = grossWage * ((structure.basic_pct || 0) / 100);
+      const hra = basicSalary * ((structure.hra_pct || 0) / 100);
       
-      // For fixed allowances, if they didn't work full month, we should probably pro-rate them.
-      // But spec says "Calculate each salary component as % of gross" or "fixed amount". 
-      // If it's fixed amount, let's pro-rate by (payableDays/totalWorkingDays).
+      // For fixed allowances, if they didn't work full month, we pro-rate them.
       const ratio = payableDays / totalWorkingDays;
-      const standardAllowance = structure.standard_allowance * ratio;
-      const performanceBonus = structure.performance_bonus * ratio;
-      const travelAllowance = structure.travel_allowance * ratio;
-      const foodAllowance = structure.food_allowance * ratio;
+      const standardAllowance = (structure.standard_allowance || 0) * ratio;
+      const performanceBonus = (structure.performance_bonus || 0) * ratio;
+      const travelAllowance = (structure.travel_allowance || 0) * ratio;
+      const foodAllowance = (structure.food_allowance || 0) * ratio;
 
       // Deductions
-      const pfEmployee = basicSalary * (Number(structure.pf_pct) / 100);
-      const pfEmployer = basicSalary * (Number(structure.pf_pct) / 100);
-      const professionalTax = payableDays > 0 ? Number(structure.professional_tax) : 0; // Don't deduct if didn't work at all
+      const pfEmployee = basicSalary * (Number(structure.pf_pct || 0) / 100);
+      const pfEmployer = basicSalary * (Number(structure.pf_pct || 0) / 100);
+      const professionalTax = payableDays > 0 ? Number(structure.professional_tax || 0) : 0; 
       
       const totalDeductions = pfEmployee + professionalTax;
       const netPayable = grossWage - totalDeductions;
