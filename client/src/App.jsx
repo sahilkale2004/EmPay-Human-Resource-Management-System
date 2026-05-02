@@ -13,6 +13,7 @@ import { TimeOff } from './pages/timeoff/TimeOff';
 import { Payroll } from './pages/payroll/Payroll';
 import { Reports } from './pages/reports/Reports';
 import { Settings } from './pages/settings/Settings';
+import { Signup } from './pages/Signup';
 
 function App() {
   return (
@@ -20,9 +21,10 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           
           <Route element={<Layout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<EmployeesList />} />
 
             <Route path="/employees">
               <Route index element={<EmployeesList />} />

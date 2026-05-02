@@ -16,25 +16,24 @@ export const Sidebar = () => {
   const { user } = useAuth();
 
   const links = [
-    { name: 'Dashboard', to: '/', icon: LayoutDashboard, roles: ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER', 'EMPLOYEE'] },
     { name: 'Employees', to: '/employees', icon: Users, roles: ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER', 'EMPLOYEE'] },
     { name: 'Attendance', to: '/attendance', icon: Clock, roles: ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER', 'EMPLOYEE'] },
     { name: 'Time Off', to: '/timeoff', icon: CalendarOff, roles: ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER', 'EMPLOYEE'] },
-    { name: 'Payroll', to: '/payroll', icon: Banknote, roles: ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER', 'EMPLOYEE'] },
-    { name: 'Reports', to: '/reports', icon: FileBarChart, roles: ['ADMIN', 'HR_OFFICER'] },
+    { name: 'Payroll', to: '/payroll', icon: Banknote, roles: ['ADMIN', 'PAYROLL_OFFICER'] },
+    { name: 'Reports', to: '/reports', icon: FileBarChart, roles: ['ADMIN', 'PAYROLL_OFFICER'] },
     { name: 'Settings', to: '/settings', icon: Settings, roles: ['ADMIN'] },
   ];
 
   return (
-    <div className="w-64 bg-sidebar text-white h-screen flex flex-col fixed left-0 top-0 overflow-y-auto">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold tracking-wider text-primary flex items-center gap-2">
-          <Banknote className="w-8 h-8 text-primary" />
-          EmPay
-        </h1>
+    <div className="w-56 bg-[#f8f9fa] border-r border-gray-300 h-screen flex flex-col fixed left-0 top-0 z-50">
+      {/* Brand */}
+      <div className="p-4 border-b border-gray-300 flex flex-col items-center gap-2">
+        <div className="w-full h-12 bg-gray-200 rounded flex items-center justify-center text-gray-500 text-[10px] font-bold text-center px-2">
+          Company Name & Logo
+        </div>
       </div>
       
-      <nav className="flex-1 mt-6 px-4 space-y-2">
+      <nav className="flex-1 mt-2 flex flex-col">
         {links.map((link) => {
           if (!user || !link.roles.includes(user.role)) return null;
           
@@ -44,23 +43,19 @@ export const Sidebar = () => {
               to={link.to}
               className={({ isActive }) =>
                 clsx(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                  "flex items-center gap-3 px-4 py-2.5 transition-all text-sm font-medium",
                   isActive 
-                    ? "bg-primary text-white font-medium" 
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                    ? "bg-[#D1D5DB] text-gray-900 border-l-4 border-primary" 
+                    : "text-gray-600 hover:bg-gray-100"
                 )
               }
             >
-              <link.icon className="w-5 h-5" />
+              <link.icon className="w-4 h-4" />
               {link.name}
             </NavLink>
           );
         })}
       </nav>
-      
-      <div className="p-4 text-xs text-gray-500 text-center">
-        &copy; {new Date().getFullYear()} EmPay HRMS
-      </div>
     </div>
   );
 };

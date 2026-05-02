@@ -3,7 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { ArrowLeft, User, Building, Phone, Mail, MapPin, Briefcase } from 'lucide-react';
+import { 
+  ArrowLeft, Edit2, Plus, Mail, Phone, MapPin, 
+  Shield, CreditCard, Lock, User
+} from 'lucide-react';
+import clsx from 'clsx';
 
 export const EmployeeDetail = () => {
   const { id } = useParams();
@@ -11,12 +15,8 @@ export const EmployeeDetail = () => {
   const { user } = useAuth();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('Resume');
   const [formData, setFormData] = useState({});
-
-  const isAdminOrHR = ['ADMIN', 'HR_OFFICER'].includes(user?.role);
-  const isPayroll = user?.role === 'PAYROLL_OFFICER';
-  const canEdit = isAdminOrHR || isPayroll; // Payroll can edit salary
 
   useEffect(() => {
     const fetchEmployee = async () => {
@@ -36,188 +36,175 @@ export const EmployeeDetail = () => {
     fetchEmployee();
   }, [id, navigate]);
 
-  const handleSave = async () => {
-    try {
-      // In a real app, we'd send only changed fields or validate thoroughly
-      const res = await api.put(`/employees/${id}`, formData);
-      if (res.data.success) {
-        toast.success('Employee updated successfully');
-        setIsEditing(false);
-        setEmployee(formData);
-      }
-    } catch (err) {
-      toast.error('Failed to update employee');
-    }
-  };
+  if (loading) return <div className="p-10 text-center">Loading...</div>;
+  if (!employee) return <div className="p-10 text-center">Employee not found.</div>;
 
-  const handleArchive = async () => {
-    if (!window.confirm('Are you sure you want to deactivate this employee?')) return;
-    try {
-      const res = await api.delete(`/employees/${id}`);
-      if (res.data.success) {
-        toast.success('Employee archived');
-        navigate('/employees');
-      }
-    } catch (err) {
-      toast.error('Failed to archive employee');
-    }
-  };
-
-  if (loading) return <div className="p-8 animate-pulse text-gray-500">Loading profile...</div>;
-  if (!employee) return null;
+  const tabs = ['Resume', 'Private Info', 'Salary Info', 'Security'];
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
-        <button 
-          onClick={() => navigate('/employees')}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" /> Back to Employees
-        </button>
-        <div className="flex items-center gap-3">
-          {canEdit && !isEditing && (
-            <button 
-              onClick={() => setIsEditing(true)}
-              className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium"
-            >
-              Edit Profile
-            </button>
-          )}
-          {isEditing && (
-            <>
-              <button 
-                onClick={() => { setIsEditing(false); setFormData(employee); }}
-                className="text-gray-500 hover:text-gray-700 px-4 py-2 font-medium"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleSave}
-                className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors shadow-sm font-medium"
-              >
-                Save Changes
-              </button>
-            </>
-          )}
+    <div className="bg-white min-h-screen">
+      {/* Profile Header */}
+      <div className="flex flex-col md:flex-row items-start gap-8 p-10 border-b border-gray-200">
+        <div className="relative">
+          <div className="w-48 h-48 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 border border-pink-200 shadow-inner">
+            <Edit2 className="w-8 h-8" />
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-4xl font-medium text-gray-800">{employee.first_name} {employee.last_name}</h1>
+            <div className="flex gap-2">
+              <div className="w-6 h-6 bg-red-600 rounded-full"></div>
+              <div className="w-6 h-6 bg-blue-400 rounded-sm"></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 text-sm">
+            <InfoRow label="Login ID" value={employee.login_id} />
+            <InfoRow label="Company" value="EmPay" />
+            <InfoRow label="Email" value={employee.email} />
+            <InfoRow label="Department" value={employee.department} />
+            <InfoRow label="Mobile" value={employee.phone} />
+            <InfoRow label="Manager" value={employee.manager_name || '-'} />
+            <InfoRow label="Location" value={employee.address || '-'} />
+          </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Header Cover */}
-        <div className="h-32 bg-gradient-to-r from-blue-100 to-indigo-100"></div>
-        
-        <div className="px-8 pb-8 relative">
-          {/* Avatar */}
-          <div className="absolute -top-16 w-32 h-32 bg-white rounded-full p-2">
-            <div className="w-full h-full bg-primary text-white rounded-full flex items-center justify-center text-4xl font-bold">
-              {employee.first_name[0]}{employee.last_name[0]}
-            </div>
-          </div>
-
-          {/* Action Header */}
-          <div className="ml-36 flex justify-between items-start pt-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{employee.first_name} {employee.last_name}</h1>
-              <p className="text-gray-500 font-medium mt-1 flex items-center gap-2">
-                <Briefcase className="w-4 h-4" /> {employee.job_position || 'Position Not Set'}
-              </p>
-            </div>
-            {isAdminOrHR && !isEditing && (
-              <button onClick={handleArchive} className="text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors">
-                Deactivate
-              </button>
+      {/* Tabs Navigation */}
+      <div className="flex border-b border-gray-200 px-10">
+        {tabs.map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={clsx(
+              "px-6 py-4 font-medium text-sm transition-all relative",
+              activeTab === tab ? "text-gray-900 border-b-2 border-gray-900" : "text-gray-400 hover:text-gray-600"
             )}
-          </div>
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-          {/* Details Grid */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Column 1 */}
-            <div className="space-y-6">
-              <Section title="Personal Information">
-                <Field label="First Name" name="first_name" value={formData.first_name} isEditing={isEditing && isAdminOrHR} onChange={setFormData} />
-                <Field label="Last Name" name="last_name" value={formData.last_name} isEditing={isEditing && isAdminOrHR} onChange={setFormData} />
-                <Field label="Phone" name="phone" value={formData.phone} isEditing={isEditing && isAdminOrHR} onChange={setFormData} />
-                <Field label="Email" name="email" value={formData.email} isEditing={false} onChange={setFormData} />
-                <Field label="Address" name="address" value={formData.address} isEditing={isEditing && isAdminOrHR} onChange={setFormData} type="textarea" />
-              </Section>
-            </div>
-
-            {/* Column 2 */}
-            <div className="space-y-6">
-              <Section title="Employment Details">
-                <Field label="Login ID" name="login_id" value={formData.login_id} isEditing={false} onChange={setFormData} />
-                <Field label="Department" name="department" value={formData.department} isEditing={isEditing && isAdminOrHR} onChange={setFormData} />
-                <Field label="Date of Joining" name="date_of_joining" value={formData.date_of_joining?.split('T')[0]} isEditing={isEditing && isAdminOrHR} onChange={setFormData} type="date" />
-                <Field label="Bank Name" name="bank_name" value={formData.bank_name} isEditing={isEditing && isAdminOrHR} onChange={setFormData} />
-                <Field label="Account Number" name="bank_account_number" value={formData.bank_account_number} isEditing={isEditing && isAdminOrHR} onChange={setFormData} />
-              </Section>
-
-              {(isAdminOrHR || isPayroll || user.employee_id === parseInt(id)) && employee.salary_structure && (
-                <Section title="Salary Structure">
-                  <Field label="Wage Type" name="salary_structure.wage_type" value={formData.salary_structure?.wage_type} isEditing={false} onChange={setFormData} />
-                  <Field label="Monthly Wage" name="salary_structure.monthly_wage" value={formData.salary_structure?.monthly_wage} isEditing={false} onChange={setFormData} />
-                  <Field label="Basic (%)" name="salary_structure.basic_pct" value={formData.salary_structure?.basic_pct} isEditing={false} onChange={setFormData} />
-                  {/* More salary fields can go here. For full edit, maybe a separate modal is better */}
-                </Section>
-              )}
-            </div>
-          </div>
-
-        </div>
+      {/* Tab Content */}
+      <div className="p-10">
+        {activeTab === 'Resume' && <ResumeTab employee={employee} />}
+        {activeTab === 'Private Info' && <PrivateTab employee={employee} />}
+        {activeTab === 'Salary Info' && <SalaryTab employee={employee} />}
+        {activeTab === 'Security' && <SecurityTab employee={employee} />}
       </div>
     </div>
   );
 };
 
-const Section = ({ title, children }) => (
-  <div className="bg-gray-50/50 rounded-xl p-6 border border-gray-100">
-    <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
-    <div className="space-y-4">
-      {children}
+const InfoRow = ({ label, value }) => (
+  <div className="flex">
+    <span className="w-24 text-gray-400 font-medium">{label}</span>
+    <span className="text-gray-800 font-medium">{value}</span>
+  </div>
+);
+
+const ResumeTab = ({ employee }) => (
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+    <div className="space-y-6">
+      <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-gray-800">About</h3>
+          <Edit2 className="w-4 h-4 text-gray-400 cursor-pointer" />
+        </div>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          {employee.about_text || 'No description provided.'}
+        </p>
+      </div>
+
+      <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
+        <h3 className="font-bold text-gray-800 mb-4">What I love about my job</h3>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          {employee.interests_hobbies || 'Not specified.'}
+        </p>
+      </div>
+    </div>
+
+    <div className="space-y-6">
+      <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-gray-800">Skills</h3>
+          <Plus className="w-4 h-4 text-gray-400 cursor-pointer" />
+        </div>
+        <div className="text-sm text-gray-400 italic">+ Add Skills</div>
+      </div>
+
+      <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-gray-800">Certification</h3>
+          <Plus className="w-4 h-4 text-gray-400 cursor-pointer" />
+        </div>
+        <div className="text-sm text-gray-400 italic">+ Add Certification</div>
+      </div>
     </div>
   </div>
 );
 
-const Field = ({ label, name, value, isEditing, onChange, type = "text" }) => {
-  if (!isEditing) {
-    return (
-      <div>
-        <span className="block text-sm font-medium text-gray-500 mb-1">{label}</span>
-        <span className="block text-gray-900">{value || '-'}</span>
+const PrivateTab = ({ employee }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+    <Section title="Personal Information">
+      <InfoItem label="Address" value={employee.private_address} />
+      <InfoItem label="Date of Birth" value={employee.date_of_birth} />
+      <InfoItem label="Place of Birth" value={employee.place_of_birth} />
+      <InfoItem label="Government ID" value={employee.government_id} />
+    </Section>
+    <Section title="Family">
+      <InfoItem label="Marital Status" value={employee.marital_status} />
+      <InfoItem label="Dependents" value={employee.dependents} />
+      <InfoItem label="Emergency Contact" value={employee.emergency_contact_name} />
+    </Section>
+  </div>
+);
+
+const SalaryTab = ({ employee }) => (
+  <div className="space-y-6">
+    <Section title="Salary Structure">
+      <InfoItem label="Monthly Wage" value={`₹${employee.salary_structure?.monthly_wage || 0}`} />
+      <InfoItem label="Wage Type" value={employee.salary_structure?.wage_type} />
+    </Section>
+  </div>
+);
+
+const SecurityTab = ({ employee }) => (
+  <div className="max-w-md space-y-8">
+    <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">
+      <h3 className="font-bold text-gray-800 mb-6">Change Password</h3>
+      <div className="space-y-4">
+        <PasswordField label="Old Password" />
+        <PasswordField label="New Password" />
+        <PasswordField label="Confirm Password" />
+        <button className="bg-blue-400 text-white px-6 py-2 rounded text-sm font-bold shadow-sm">
+          Reset password
+        </button>
       </div>
-    );
-  }
-
-  // Handle nested state like salary_structure.wage_type if needed
-  const handleChange = (e) => {
-    const val = e.target.value;
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      onChange(prev => ({ ...prev, [parent]: { ...prev[parent], [child]: val } }));
-    } else {
-      onChange(prev => ({ ...prev, [name]: val }));
-    }
-  };
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      {type === 'textarea' ? (
-        <textarea 
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-          value={value || ''}
-          onChange={handleChange}
-          rows="2"
-        />
-      ) : (
-        <input 
-          type={type}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-          value={value || ''}
-          onChange={handleChange}
-        />
-      )}
     </div>
-  );
-};
+  </div>
+);
+
+const Section = ({ title, children }) => (
+  <div className="space-y-4">
+    <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2">{title}</h3>
+    <div className="space-y-2">{children}</div>
+  </div>
+);
+
+const InfoItem = ({ label, value }) => (
+  <div className="flex text-sm">
+    <span className="w-32 text-gray-400">{label} :-</span>
+    <span className="text-gray-800 font-medium">{value || '-'}</span>
+  </div>
+);
+
+const PasswordField = ({ label }) => (
+  <div>
+    <label className="block text-sm text-gray-500 mb-1">{label}</label>
+    <input type="password" title={label} className="w-full border-b border-gray-300 py-1 focus:outline-none focus:border-blue-400" />
+  </div>
+);

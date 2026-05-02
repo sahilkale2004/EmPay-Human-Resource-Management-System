@@ -1,47 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #6C47FF;
-  --color-primary-hover: #5835e5;
-  --color-secondary: #10B981;
-  --color-warning: #F59E0B;
+  --color-primary: #D946EF;
+  --color-secondary: #8B5CF6;
+  --color-sidebar: #1E293B;
+  --color-success: #22C55E;
   --color-error: #EF4444;
-  --color-background: #F0F2F7;
-  --color-sidebar: #1E1E2D;
-  --color-card: #FFFFFF;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-warning: #F59E0B;
+  
+  --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
 }
 
-body {
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  background-color: var(--color-background);
-  color: #1a1a2e;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Animated blobs for login page */
 @keyframes blob {
-  0%   { transform: translate(0px, 0px) scale(1); }
-  33%  { transform: translate(30px, -50px) scale(1.1); }
-  66%  { transform: translate(-20px, 20px) scale(0.9); }
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
   100% { transform: translate(0px, 0px) scale(1); }
 }
 
-.animate-blob { animation: blob 7s infinite; }
-.animation-delay-2000 { animation-delay: 2s; }
-.animation-delay-4000 { animation-delay: 4s; }
+.animate-blob {
+  animation: blob 7s infinite;
+}
 
-/* Smooth transitions globally */
-a, button { transition: all 0.2s ease; }
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
