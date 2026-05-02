@@ -15,6 +15,7 @@ export const Payroll = () => {
   const [showRunModal, setShowRunModal] = useState(false);
   const [newRun, setNewRun] = useState({ name: '', period_start: '', period_end: '' });
   const [stats, setStats] = useState({ totalEmployees: 0, totalCost: 0 });
+  const [fundBalance, setFundBalance] = useState(0);
 
   const canManage = ['ADMIN', 'PAYROLL_OFFICER'].includes(user?.role);
 
@@ -30,6 +31,9 @@ export const Payroll = () => {
         
         const statsRes = await api.get('/payroll/stats');
         setStats(statsRes.data.data || { totalEmployees: 0, totalCost: 0 });
+
+        const fundRes = await api.get('/payroll/fund');
+        setFundBalance(fundRes.data.data?.balance || 0);
       }
       const slipRes = await api.get('/payroll/slips');
       setPayslips(slipRes.data.data || []);
@@ -49,6 +53,16 @@ export const Payroll = () => {
       fetchData();
     } catch (err) {
       toast.error('Failed to create payrun');
+    }
+  };
+
+  const handleAddFunds = async () => {
+    try {
+      await api.post('/payroll/fund/add', { amount: 5000000 });
+      toast.success('Added ₹50,00,000 to company fund');
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to add funds');
     }
   };
 
@@ -110,9 +124,18 @@ export const Payroll = () => {
 
       {activeTab === 'dashboard' ? (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <SummaryBox title="Total Employees" value={stats.totalEmployees} link="Click for detail" />
             <SummaryBox title="Total Payroll Cost" value={`₹${parseFloat(stats.totalCost).toLocaleString()}`} link="Click for detail" />
+            {canManage && (
+              <div className="bg-[#FDFBF8] border border-[#DDD8CF] p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <h3 className="text-[#5C7A5F] font-bold text-base mb-2">Company Fund</h3>
+                <span className="text-3xl font-bold text-[#2A2520] mb-2">₹{parseFloat(fundBalance).toLocaleString()}</span>
+                <button onClick={handleAddFunds} className="text-[10px] font-bold text-[#5C7A5F] uppercase tracking-wider hover:underline bg-[#5C7A5F]/10 px-3 py-1 rounded-full mt-1 flex items-center gap-1">
+                  <Plus className="w-3 h-3" /> Add 50L
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl overflow-hidden shadow-sm">

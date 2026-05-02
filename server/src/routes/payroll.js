@@ -22,6 +22,12 @@ router.get('/slips', authenticateToken, payrollController.getPayslips);
 // GET /api/payroll/slips/:id
 router.get('/slips/:id', authenticateToken, payrollController.getPayslipById);
 
+// GET /api/payroll/fund
+router.get('/fund', authenticateToken, requireRole(['ADMIN', 'PAYROLL_OFFICER']), payrollController.getCompanyFund);
+
+// POST /api/payroll/fund/add
+router.post('/fund/add', authenticateToken, requireRole(['ADMIN', 'PAYROLL_OFFICER']), payrollController.addCompanyFund);
+
 // GET /api/payroll/stats
 router.get('/stats', authenticateToken, requireRole(['ADMIN', 'PAYROLL_OFFICER']), payrollController.getPayrollStats);
 

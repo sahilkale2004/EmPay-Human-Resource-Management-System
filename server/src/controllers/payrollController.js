@@ -51,6 +51,27 @@ const validatePayrun = async (req, res) => {
   try {
     const { id } = req.params;
     await connection.beginTransaction();
+    
+    // Check total cost
+    const [costRows] = await connection.query(`SELECT SUM(net_payable) as total FROM payslips WHERE payrun_id = ?`, [id]);
+    const totalCost = costRows[0].total || 0;
+    
+    // Check available fund
+    const [fundRows] = await connection.query(`SELECT available_balance FROM company_funds ORDER BY id DESC LIMIT 1`);
+    if (fundRows.length === 0) {
+      await connection.query(`INSERT INTO company_funds (available_balance) VALUES (0)`);
+      fundRows.push({ available_balance: 0 });
+    }
+    const currentFund = fundRows[0].available_balance;
+    
+    if (parseFloat(currentFund) < parseFloat(totalCost)) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, error: 'Insufficient company funds to validate this payrun. Please add funds.' });
+    }
+    
+    // Deduct fund
+    await connection.query(`UPDATE company_funds SET available_balance = available_balance - ? ORDER BY id DESC LIMIT 1`, [totalCost]);
+    
     await connection.query(`UPDATE payruns SET status = 'VALIDATED' WHERE id = ?`, [id]);
     await connection.query(`UPDATE payslips SET status = 'DONE' WHERE payrun_id = ?`, [id]);
     await connection.commit();
@@ -111,8 +132,15 @@ const getPayslipById = async (req, res) => {
 
 const getPayrollStats = async (req, res) => {
   try {
-    const [empRows] = await pool.query('SELECT COUNT(*) as count FROM employees');
-    const [costRows] = await pool.query("SELECT SUM(net_payable) as total FROM payslips WHERE status = 'DONE'");
+    const [empRows] = await pool.query('SELECT COUNT(*) as count FROM employees e JOIN users u ON e.user_id = u.id WHERE u.is_active = TRUE');
+    const [costRows] = await pool.query(`
+      SELECT SUM(ss.monthly_wage) as total 
+      FROM salary_structures ss 
+      JOIN employees e ON ss.employee_id = e.id 
+      JOIN users u ON e.user_id = u.id 
+      WHERE u.is_active = TRUE
+    `);
+    
     res.json({ 
       success: true, 
       data: { 
@@ -144,6 +172,37 @@ const getPayrollReportSummary = async (req, res) => {
   }
 };
 
+const getCompanyFund = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT available_balance FROM company_funds ORDER BY id DESC LIMIT 1`);
+    const balance = rows.length > 0 ? rows[0].available_balance : 0;
+    res.json({ success: true, data: { balance } });
+  } catch (err) {
+    console.error('GET company fund error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+const addCompanyFund = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid amount' });
+    }
+    // Ensure row exists
+    const [rows] = await pool.query(`SELECT id FROM company_funds ORDER BY id DESC LIMIT 1`);
+    if (rows.length === 0) {
+      await pool.query(`INSERT INTO company_funds (available_balance) VALUES (?)`, [amount]);
+    } else {
+      await pool.query(`UPDATE company_funds SET available_balance = available_balance + ? ORDER BY id DESC LIMIT 1`, [amount]);
+    }
+    res.json({ success: true, message: `Added ₹${amount} to company fund successfully.` });
+  } catch (err) {
+    console.error('POST add company fund error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   getPayruns,
   createPayrun,
@@ -152,5 +211,7 @@ module.exports = {
   getPayslips,
   getPayslipById,
   getPayrollStats,
-  getPayrollReportSummary
+  getPayrollReportSummary,
+  getCompanyFund,
+  addCompanyFund
 };
