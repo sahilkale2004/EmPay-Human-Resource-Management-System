@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { FileText, Download, Printer } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -32,7 +32,7 @@ export const Reports = () => {
             </div>
             <h3 className="font-bold text-[#2A2520] mb-2 text-sm">{rpt.name}</h3>
             <p className="text-xs text-[#9C9286] leading-relaxed">{rpt.description}</p>
-            <div className="mt-4 text-[#5C7A5F] text-xs font-semibold group-hover:underline">View Report â†’</div>
+            <div className="mt-4 text-[#5C7A5F] text-xs font-semibold group-hover:underline">View Report →</div>
           </div>
         ))}
       </div>
@@ -70,24 +70,24 @@ const SalaryAttachmentReport = ({ onBack }) => (
           <tr className="font-bold bg-[#F5F2ED]"><td colSpan={3} className="border border-[#DDD8CF] p-2 text-[#5C7A5F]">Earnings</td></tr>
           <tr>
             <td className="border border-[#DDD8CF] p-3 text-[#2A2520]">Basic Salary</td>
-            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">â‚¹12,00,000</td>
-            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">â‚¹12,00,000</td>
+            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">₹12,00,000</td>
+            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">₹12,00,000</td>
           </tr>
           <tr>
             <td className="border border-[#DDD8CF] p-3 text-[#2A2520]">Allowances</td>
-            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">â‚¹4,50,000</td>
-            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">â‚¹4,50,000</td>
+            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">₹4,50,000</td>
+            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">₹4,50,000</td>
           </tr>
           <tr className="font-bold bg-[#F5F2ED]"><td colSpan={3} className="border border-[#DDD8CF] p-2 text-[#B84040]">Deductions</td></tr>
           <tr>
             <td className="border border-[#DDD8CF] p-3 text-[#2A2520]">Provident Fund</td>
-            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">â‚¹1,20,000</td>
-            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">â‚¹1,20,000</td>
+            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">₹1,20,000</td>
+            <td className="border border-[#DDD8CF] p-3 text-right text-[#6B6259]">₹1,20,000</td>
           </tr>
           <tr className="font-bold bg-[#1C2B1E] text-white">
             <td className="border border-[#2E4232] p-3">Net Salary</td>
-            <td className="border border-[#2E4232] p-3 text-right">â‚¹15,30,000</td>
-            <td className="border border-[#2E4232] p-3 text-right">â‚¹15,30,000</td>
+            <td className="border border-[#2E4232] p-3 text-right">₹15,30,000</td>
+            <td className="border border-[#2E4232] p-3 text-right">₹15,30,000</td>
           </tr>
         </tbody>
       </table>

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { 
@@ -71,35 +71,6 @@ export const Dashboard = () => {
           <p className="text-[#6B6259] text-sm font-medium mt-1">Here's what's happening in EmPay today.</p>
         </div>
         
-        {/* Check In / Out Widget */}
-        <div className="flex items-center gap-5 bg-[#F5F2ED] p-4 rounded-xl border border-[#DDD8CF]">
-          <div className="text-right">
-            <p className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest">{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
-            <p className="text-2xl font-bold text-[#2A2520] tabular-nums">{currentTime.toLocaleTimeString('en-US', { hour12: false })}</p>
-          </div>
-          <div className="h-10 w-px bg-[#DDD8CF]"></div>
-          <div className="flex gap-2">
-            {!data?.todayAttendance?.check_in ? (
-              <button 
-                onClick={() => handleCheckInOut('check-in')}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#5C7A5F] hover:bg-[#3F5C42] text-white font-semibold rounded-xl shadow-md transition-all active:scale-95"
-              >
-                <Play className="w-4 h-4 fill-current" /> Check In
-              </button>
-            ) : !data?.todayAttendance?.check_out ? (
-              <button 
-                onClick={() => handleCheckInOut('check-out')}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#B84040] hover:bg-[#8B2F2F] text-white font-semibold rounded-xl shadow-md transition-all active:scale-95"
-              >
-                <Square className="w-4 h-4 fill-current" /> Check Out
-              </button>
-            ) : (
-              <div className="px-5 py-2.5 bg-[#4A8C4E]/10 text-[#4A8C4E] font-semibold rounded-xl text-sm">
-                âœ“ Done for Today
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {isAdminOrHR ? (

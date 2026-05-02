@@ -13,10 +13,12 @@ router.get('/today/:employeeId', authenticateToken, attendanceController.getToda
 // GET /api/attendance/today-status
 router.get('/today-status', authenticateToken, attendanceController.getTodayStatus);
 
-// POST /api/attendance/checkin
+// POST /api/attendance/check-in
+router.post('/check-in', authenticateToken, attendanceController.checkIn);
 router.post('/checkin', authenticateToken, attendanceController.checkIn);
 
-// POST /api/attendance/checkout
+// POST /api/attendance/check-out
+router.post('/check-out', authenticateToken, attendanceController.checkOut);
 router.post('/checkout', authenticateToken, attendanceController.checkOut);
 
 module.exports = router;

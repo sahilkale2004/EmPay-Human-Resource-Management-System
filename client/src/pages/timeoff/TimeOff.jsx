@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
@@ -31,6 +31,21 @@ export const TimeOff = () => {
       toast.error('Failed to load time off data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/timeoff', {
+        ...form,
+        employee_id: user.employee_id
+      });
+      toast.success('Request submitted');
+      setShowForm(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to submit request');
     }
   };
 
@@ -143,22 +158,60 @@ export const TimeOff = () => {
 
       {/* Modal */}
       {showForm && <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-[#FDFBF8] rounded-2xl shadow-2xl border border-[#DDD8CF] w-full max-w-lg p-7">
+        <form onSubmit={handleSubmit} className="bg-[#FDFBF8] rounded-2xl shadow-2xl border border-[#DDD8CF] w-full max-w-lg p-7">
            <h2 className="text-lg font-bold text-[#2A2520] mb-6">Time Off Request</h2>
            <div className="space-y-4">
-              <ModalField label="Employee" value="[Employee Name]" />
-              <ModalField label="Time Off Type" value="[Paid Time Off]" />
-              <div className="flex gap-4">
-                <ModalField label="From" value="Aug 14" className="flex-1" />
-                <ModalField label="To" value="Aug 16" className="flex-1" />
+              <div>
+                <label className="block text-xs font-bold text-[#9C9286] uppercase tracking-widest mb-1.5">Time Off Type</label>
+                <select 
+                  required
+                  value={form.time_off_type_id}
+                  onChange={(e) => setForm({...form, time_off_type_id: e.target.value})}
+                  className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5C7A5F]"
+                >
+                  <option value="">Select Type</option>
+                  {allocations.map(a => (
+                    <option key={a.time_off_type_id} value={a.time_off_type_id}>{a.time_off_type_name}</option>
+                  ))}
+                </select>
               </div>
-              <ModalField label="Allocation" value="03.00 days" />
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-[#9C9286] uppercase tracking-widest mb-1.5">Start Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={form.start_date}
+                    onChange={(e) => setForm({...form, start_date: e.target.value})}
+                    className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5C7A5F]"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-[#9C9286] uppercase tracking-widest mb-1.5">End Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={form.end_date}
+                    onChange={(e) => setForm({...form, end_date: e.target.value})}
+                    className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5C7A5F]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#9C9286] uppercase tracking-widest mb-1.5">Reason</label>
+                <textarea 
+                  value={form.reason}
+                  onChange={(e) => setForm({...form, reason: e.target.value})}
+                  className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5C7A5F] h-24"
+                  placeholder="Explain your reason..."
+                ></textarea>
+              </div>
               <div className="flex gap-3 pt-4">
-                <button onClick={() => setShowForm(false)} className="flex-1 bg-[#5C7A5F] hover:bg-[#3F5C42] text-white py-2.5 rounded-xl font-semibold transition-all">Confirm</button>
-                <button onClick={() => setShowForm(false)} className="flex-1 bg-[#EDE9E3] hover:bg-[#DDD8CF] text-[#6B6259] py-2.5 rounded-xl font-semibold transition-all">Cancel</button>
+                <button type="submit" className="flex-1 bg-[#5C7A5F] hover:bg-[#3F5C42] text-white py-2.5 rounded-xl font-semibold transition-all">Submit Request</button>
+                <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-[#EDE9E3] hover:bg-[#DDD8CF] text-[#6B6259] py-2.5 rounded-xl font-semibold transition-all">Cancel</button>
               </div>
            </div>
-        </div>
+        </form>
       </div>}
     </div>
   );

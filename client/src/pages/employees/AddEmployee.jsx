@@ -20,7 +20,8 @@ export const AddEmployee = () => {
     date_of_joining: new Date().toISOString().split('T')[0],
     gender: '',
     nationality: '',
-    marital_status: ''
+    marital_status: '',
+    password: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -78,6 +79,7 @@ export const AddEmployee = () => {
               <Field label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange} required />
               <Field label="Email Address" name="email" value={formData.email} onChange={handleChange} type="email" required />
               <Field label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} type="tel" />
+              <Field label="Initial Password" name="password" value={formData.password} onChange={handleChange} type="password" placeholder="Leave blank for auto-generation" />
             </Section>
 
             <Section title="Employment">
@@ -141,7 +143,7 @@ const Section = ({ title, children }) => (
   </div>
 );
 
-const Field = ({ label, name, value, onChange, type = "text", options = [], required = false }) => {
+const Field = ({ label, name, value, onChange, type = "text", options = [], required = false, placeholder = "" }) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputClasses = clsx(
     "w-full bg-[#F5F2ED] border rounded-xl px-4 py-2.5 text-[#2A2520] font-medium outline-none transition-all text-sm",
@@ -171,6 +173,7 @@ const Field = ({ label, name, value, onChange, type = "text", options = [], requ
         <input 
           type={type}
           name={name}
+          placeholder={placeholder}
           className={inputClasses}
           value={value}
           onChange={onChange}

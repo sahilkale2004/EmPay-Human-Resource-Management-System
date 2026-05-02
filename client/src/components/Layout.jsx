@@ -30,8 +30,8 @@ export const Layout = () => {
           <Outlet />
         </main>
       </div>
-      {/* Show Systray for all roles as it provides status and quick check-in */}
-      <Systray />
+      {/* Show Systray only on dashboard as it can be distracting on other pages */}
+      {window.location.pathname === '/' && <Systray />}
     </div>
   );
 };

@@ -42,7 +42,7 @@ const createTimeOffRequest = async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO time_off_requests (employee_id, time_off_type_id, start_date, end_date, days, reason, status) 
+      `INSERT INTO time_off_requests (employee_id, time_off_type_id, start_date, end_date, number_of_days, reason, status) 
        VALUES (?, ?, ?, ?, ?, ?, 'PENDING')`,
       [employee_id, time_off_type_id, start_date, end_date, days, reason]
     );
@@ -70,7 +70,7 @@ const approveRequest = async (req, res) => {
     await connection.query(
       `UPDATE time_off_allocations SET remaining_days = remaining_days - ? 
        WHERE employee_id = ? AND time_off_type_id = ?`,
-      [request.days, request.employee_id, request.time_off_type_id]
+      [request.number_of_days, request.employee_id, request.time_off_type_id]
     );
 
     await connection.commit();

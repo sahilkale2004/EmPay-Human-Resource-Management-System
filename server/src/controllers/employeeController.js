@@ -69,7 +69,7 @@ const createEmployee = async (req, res) => {
 
     const dateOfJoining = data.date_of_joining ? new Date(data.date_of_joining) : new Date();
     const loginId = await generateLoginId(data.first_name, data.last_name, dateOfJoining, process.env.COMPANY_NAME);
-    const tempPassword = Math.random().toString(36).slice(-8);
+    const tempPassword = data.password || Math.random().toString(36).slice(-8);
     const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     const [userResult] = await connection.query(
