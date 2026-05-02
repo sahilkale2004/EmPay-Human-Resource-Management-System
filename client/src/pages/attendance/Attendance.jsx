@@ -45,39 +45,42 @@ export const Attendance = () => {
   const formatTime = (dt) => dt ? new Date(dt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex flex-col gap-4">
-        <h1 className="text-xl font-medium text-gray-700">Attendances {isAdminView ? 'List view' : ''}</h1>
-        
-        {/* Controls Header */}
-        <div className="flex flex-wrap items-center gap-4 bg-white p-2 rounded border border-gray-300 shadow-sm">
-          <div className="flex border border-gray-300 rounded overflow-hidden">
-            <button onClick={handlePrevDate} className="p-1.5 hover:bg-gray-100 border-r border-gray-300 transition-colors">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button onClick={handleNextDate} className="p-1.5 hover:bg-gray-100 transition-colors">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-[#2A2520]">Attendance</h1>
+        <p className="text-[#6B6259] text-sm mt-0.5">{isAdminView ? 'Team attendance overview' : 'Your attendance records'}</p>
+      </div>
 
-          <div className="px-4 py-1.5 border border-gray-300 rounded text-sm font-medium bg-gray-50">
-            {currentDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </div>
-
-          <div className="px-4 py-1.5 border border-gray-300 rounded text-sm font-medium bg-gray-50">
-            {currentDate.toLocaleDateString('en-GB', { weekday: 'long' })}
-          </div>
-
-          {isAdminView && (
-            <div className="flex-1 max-w-xs relative ml-auto">
-              <input 
-                type="text" 
-                placeholder="Searchbar" 
-                className="w-full bg-white border border-gray-300 rounded px-4 py-1.5 text-sm focus:outline-none focus:border-primary text-center"
-              />
-            </div>
-          )}
+      {/* Controls Header */}
+      <div className="flex flex-wrap items-center gap-3 bg-[#FDFBF8] p-3 rounded-xl border border-[#DDD8CF] shadow-sm">
+        <div className="flex border border-[#DDD8CF] rounded-lg overflow-hidden">
+          <button onClick={handlePrevDate} className="p-2 hover:bg-[#EDE9E3] border-r border-[#DDD8CF] transition-colors">
+            <ChevronLeft className="w-4 h-4 text-[#6B6259]" />
+          </button>
+          <button onClick={handleNextDate} className="p-2 hover:bg-[#EDE9E3] transition-colors">
+            <ChevronRight className="w-4 h-4 text-[#6B6259]" />
+          </button>
         </div>
+
+        <div className="px-4 py-1.5 bg-[#5C7A5F]/10 border border-[#5C7A5F]/20 rounded-lg text-sm font-semibold text-[#3F5C42]">
+          {currentDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+
+        <div className="px-4 py-1.5 border border-[#DDD8CF] rounded-lg text-sm font-medium bg-[#F5F2ED] text-[#6B6259]">
+          {currentDate.toLocaleDateString('en-GB', { weekday: 'long' })}
+        </div>
+
+        {isAdminView && (
+          <div className="flex-1 max-w-xs relative ml-auto">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9C9286]" />
+            <input 
+              type="text" 
+              placeholder="Search employee…" 
+              className="w-full bg-[#F5F2ED] border border-[#DDD8CF] rounded-lg pl-9 pr-4 py-1.5 text-sm text-[#2A2520] placeholder-[#9C9286] focus:outline-none focus:border-[#5C7A5F] transition-all"
+            />
+          </div>
+        )}
       </div>
 
       {!isAdminView && (
@@ -89,36 +92,36 @@ export const Attendance = () => {
       )}
 
       {/* Table */}
-      <div className="bg-white border border-gray-300 rounded overflow-hidden shadow-sm">
+      <div className="bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl overflow-hidden shadow-sm">
         <table className="w-full text-sm text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-300">
+            <tr className="bg-[#F5F2ED] border-b border-[#DDD8CF]">
               {isAdminView ? (
-                <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Emp</th>
+                <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Employee</th>
               ) : (
-                <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Date</th>
+                <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Date</th>
               )}
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Check In</th>
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Check Out</th>
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Work Hours</th>
-              <th className="px-6 py-3 font-medium text-gray-700">Extra hours</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Check In</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Check Out</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Work Hours</th>
+              <th className="px-6 py-3.5 font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Extra Hours</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-300">
+          <tbody className="divide-y divide-[#EDE9E3]">
             {loading ? (
-              <tr><td colSpan={5} className="px-6 py-8 text-center animate-pulse text-gray-400">Loading attendance...</td></tr>
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loading attendance…</td></tr>
             ) : records.length === 0 ? (
-              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400 italic">No records for this date.</td></tr>
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">No records for this date.</td></tr>
             ) : (
               records.map((rec) => (
-                <tr key={rec.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-3 border-r border-gray-300 text-gray-600 font-medium">
-                    {isAdminView ? `[${rec.first_name} ${rec.last_name}]` : new Date(rec.date).toLocaleDateString()}
+                <tr key={rec.id} className="hover:bg-[#F5F2ED] transition-colors">
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#2A2520] font-medium text-sm">
+                    {isAdminView ? `${rec.first_name} ${rec.last_name}` : new Date(rec.date).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-3 border-r border-gray-300 text-gray-600">{formatTime(rec.check_in)}</td>
-                  <td className="px-6 py-3 border-r border-gray-300 text-gray-600">{formatTime(rec.check_out)}</td>
-                  <td className="px-6 py-3 border-r border-gray-300 text-gray-600">{rec.work_hours ? `${parseFloat(rec.work_hours).toFixed(2)}` : '00:00'}</td>
-                  <td className="px-6 py-3 text-gray-600">{rec.overtime_hours ? `${parseFloat(rec.overtime_hours).toFixed(2)}` : '00:00'}</td>
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#5C7A5F] font-semibold">{formatTime(rec.check_in)}</td>
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#B84040] font-semibold">{formatTime(rec.check_out)}</td>
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#2A2520]">{rec.work_hours ? `${parseFloat(rec.work_hours).toFixed(2)} h` : '—'}</td>
+                  <td className="px-6 py-3.5 text-[#8B7355]">{rec.overtime_hours ? `${parseFloat(rec.overtime_hours).toFixed(2)} h` : '—'}</td>
                 </tr>
               ))
             )}
@@ -130,11 +133,12 @@ export const Attendance = () => {
 };
 
 const StatBox = ({ label, value, sub }) => (
-  <div className="bg-white border border-gray-300 p-4 rounded shadow-sm text-center">
-    <p className="text-xs font-bold text-gray-400 uppercase mb-1">{label}</p>
+  <div className="bg-[#FDFBF8] border border-[#DDD8CF] p-5 rounded-2xl shadow-sm text-center">
+    <p className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest mb-2">{label}</p>
     <div className="flex flex-col">
-      <span className="text-2xl font-bold text-gray-800">{value}</span>
-      {sub && <span className="text-[10px] text-gray-400">{sub}</span>}
+      <span className="text-3xl font-bold text-[#2A2520]">{value}</span>
+      {sub && <span className="text-[10px] text-[#9C9286] mt-0.5">{sub}</span>}
     </div>
   </div>
 );
+

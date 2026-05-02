@@ -94,7 +94,7 @@ export const EmployeeDetail = () => {
 
       {/* Tab Content */}
       <div className="p-10">
-        {activeTab === 'Resume' && <ResumeTab employee={employee} />}
+        {activeTab === 'Resume' && <ResumeTab employee={employee} isReadOnly={isReadOnly} />}
         {activeTab === 'Private Info' && <PrivateTab employee={employee} />}
         {activeTab === 'Salary Info' && <SalaryTab employee={employee} />}
         {activeTab === 'Security' && <SecurityTab employee={employee} />}
@@ -110,7 +110,7 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
-const ResumeTab = ({ employee }) => (
+const ResumeTab = ({ employee, isReadOnly }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
     <div className="space-y-6">
       <div className="bg-[#f8f9fa] p-6 rounded border border-gray-200">

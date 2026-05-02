@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
@@ -36,47 +36,45 @@ export const Settings = () => {
   };
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex items-center justify-between border-b border-gray-300 pb-4">
-         <h1 className="text-xl font-bold text-gray-800">User Setting</h1>
-         <div className="flex gap-2">
-            <div className="w-6 h-6 bg-red-600 rounded-full"></div>
-            <div className="w-6 h-6 bg-blue-400 rounded-sm"></div>
-         </div>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-[#2A2520]">User Settings</h1>
+        <p className="text-[#6B6259] text-sm mt-0.5">Manage system user roles and access permissions</p>
       </div>
 
-      <div className="bg-white border border-gray-300 rounded overflow-hidden shadow-sm">
+      <div className="bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl overflow-hidden shadow-sm">
         <table className="w-full text-sm text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-300 font-bold text-gray-400 uppercase tracking-widest text-[10px]">
-              <th className="px-6 py-4 border-r border-gray-300">User name</th>
-              <th className="px-6 py-4 border-r border-gray-300">Login id</th>
-              <th className="px-6 py-4 border-r border-gray-300">Email</th>
-              <th className="px-6 py-4">Role</th>
+            <tr className="bg-[#F5F2ED] border-b border-[#DDD8CF]">
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">User Name</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Login ID</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Email</th>
+              <th className="px-6 py-3.5 font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Role</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-300">
+          <tbody className="divide-y divide-[#EDE9E3]">
             {loading ? (
-              <tr><td colSpan={4} className="px-6 py-8 text-center animate-pulse text-gray-400">Loading settings...</td></tr>
+              <tr><td colSpan={4} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loading settingsâ€¦</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-400 italic">No users found.</td></tr>
+              <tr><td colSpan={4} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">No users found.</td></tr>
             ) : (
               users.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 border-r border-gray-300 text-gray-800 font-medium">
+                <tr key={u.id} className="hover:bg-[#F5F2ED] transition-colors">
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#2A2520] font-semibold">
                     {u.first_name} {u.last_name}
                   </td>
-                  <td className="px-6 py-4 border-r border-gray-300 text-gray-600">
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#6B6259] font-mono text-xs">
                     {u.login_id}
                   </td>
-                  <td className="px-6 py-4 border-r border-gray-300 text-gray-600 underline">
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#5C7A5F] underline">
                     {u.email}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-3.5">
                     <select 
                       value={u.role} 
                       onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                      className="bg-transparent border-none focus:ring-0 text-gray-700 font-medium cursor-pointer"
+                      className="bg-[#F5F2ED] border border-[#DDD8CF] rounded-lg px-2.5 py-1.5 text-sm text-[#2A2520] font-medium cursor-pointer focus:outline-none focus:border-[#5C7A5F] transition-colors"
                     >
                       <option value="ADMIN">Admin</option>
                       <option value="HR_OFFICER">HR Officer</option>
@@ -91,11 +89,14 @@ export const Settings = () => {
         </table>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 p-6 rounded-lg">
-         <p className="text-xs text-amber-800 leading-relaxed">
-           - In the Admin Settings, the administrator can assign user access rights based on each user's role.<br/>
-           - Access rights can be configured on a module basis, allowing specific permissions for each module.
-         </p>
+      <div className="bg-[#5C7A5F]/5 border border-[#5C7A5F]/20 p-5 rounded-xl">
+        <div className="flex gap-3">
+          <Shield className="w-5 h-5 text-[#5C7A5F] shrink-0 mt-0.5" />
+          <p className="text-xs text-[#3F5C42] leading-relaxed">
+            <strong>Access Control:</strong> The administrator can assign user access rights based on each user's role.
+            Access rights are configured on a module basis, allowing specific permissions for each module.
+          </p>
+        </div>
       </div>
     </div>
   );
