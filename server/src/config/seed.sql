@@ -4,7 +4,7 @@ USE empay;
 -- 1. Insert Admin User
 -- Password is 'password123' hashed with bcrypt (10 rounds)
 INSERT INTO users (login_id, email, password_hash, role, is_active) 
-VALUES ('ADMIN001', 'admin@empay.local', '$2b$10$7vN3.XhB3K.q/S3qU.6KneYm1J1m9.fX8x7XG1fW1y.H6fF8XG7XG', 'ADMIN', TRUE);
+VALUES ('ADMIN001', 'admin@empay.local', '$2b$10$1qoZljre0vHkltzGMwaXYez5M..AvUy74JmwPxs2QYHJD0trueWde', 'ADMIN', TRUE);
 
 -- 2. Insert Admin Employee Profile
 INSERT INTO employees (user_id, first_name, last_name, department, job_position, date_of_joining)
@@ -15,3 +15,6 @@ INSERT INTO time_off_types (name, is_paid) VALUES
 ('Paid Time Off (PTO)', TRUE),
 ('Sick Leave', TRUE),
 ('Unpaid Leave', FALSE);
+
+-- 4. Initialize Company Funds
+INSERT INTO company_funds (available_balance) VALUES (0.00);
