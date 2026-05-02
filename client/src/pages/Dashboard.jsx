@@ -98,14 +98,14 @@ const AdminView = ({ data, filteredEmployees, searchQuery, setSearchQuery, navig
             <div className="w-2 h-8 bg-primary rounded-full"></div>
             Team Management
           </h2>
-          <div className="relative group w-full sm:w-72">
+          <div className="relative group w-full sm:w-80">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
             <input 
               type="text"
-              placeholder="Search by name or position..."
+              placeholder="Search team..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+              className="w-full pl-11 pr-4 py-3.5 bg-surface border border-border rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium"
             />
           </div>
         </div>
@@ -225,10 +225,10 @@ const AdminView = ({ data, filteredEmployees, searchQuery, setSearchQuery, navig
 const EmployeeCard = ({ emp, navigate }) => (
   <div 
     onClick={() => navigate(`/employees/${emp.id}`)}
-    className="bg-card p-5 rounded-3xl border border-border flex items-center gap-5 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden"
+    className="bg-white p-6 rounded-[2rem] border border-border flex items-center gap-5 hover:shadow-2xl hover:-translate-y-1 hover:border-primary/20 transition-all cursor-pointer group relative overflow-hidden"
   >
     <div className="relative shrink-0">
-      <div className="w-16 h-16 rounded-full border-2 border-white shadow-md overflow-hidden bg-surface flex items-center justify-center group-hover:scale-105 transition-transform">
+      <div className="w-14 h-14 rounded-2xl border-2 border-white shadow-xl overflow-hidden bg-surface flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
         {emp.profile_picture ? (
           <img 
             src={`${API_BASE_URL}${emp.profile_picture}`} 
@@ -237,22 +237,28 @@ const EmployeeCard = ({ emp, navigate }) => (
             onError={(e) => { e.target.src = ''; e.target.onerror = null; }}
           />
         ) : (
-          <User className="w-8 h-8 text-muted opacity-30" />
+          <User className="w-7 h-7 text-muted opacity-30" />
         )}
       </div>
       <div className={clsx(
-        "absolute bottom-0 right-0 w-4 h-4 rounded-full border-4 border-card",
+        "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-[3px] border-white shadow-sm",
         emp.presence_status === 'PRESENT' ? 'bg-success' : 
-        emp.presence_status === 'ON_LEAVE' ? 'bg-error' : 'bg-warning'
+        emp.presence_status === 'ON_LEAVE' ? 'bg-secondary' : 'bg-error'
       )}></div>
     </div>
     <div className="flex-1 min-w-0">
       <p className="font-bold text-text truncate group-hover:text-primary transition-colors">{emp.first_name} {emp.last_name}</p>
-      <p className="text-xs text-muted font-bold uppercase tracking-wider mt-1">{emp.job_position || 'Staff member'}</p>
+      <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted uppercase tracking-widest mt-0.5">
+        <Briefcase className="w-2.5 h-2.5 text-primary/40" />
+        {emp.job_position || 'Staff member'}
+      </div>
     </div>
-    <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className="p-2 bg-surface rounded-xl opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1">
        <ArrowRight className="w-4 h-4 text-primary" />
     </div>
+    
+    {/* Subtle Decorative Gradient */}
+    <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
   </div>
 );
 

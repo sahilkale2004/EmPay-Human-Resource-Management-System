@@ -36,11 +36,14 @@ export const Settings = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in-up">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#2A2520]">User Settings</h1>
-        <p className="text-[#6B6259] text-sm mt-0.5">Manage system user roles and access permissions</p>
+      <div className="bg-white p-6 rounded-[2rem] border border-border shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+        <div>
+          <h1 className="text-2xl font-bold text-text">User Settings</h1>
+          <p className="text-muted text-xs font-bold uppercase tracking-widest mt-1">Manage system user roles and access permissions</p>
+        </div>
+        <div className="absolute top-[-20%] right-[-10%] w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
       </div>
 
       <div className="bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl overflow-hidden shadow-sm">
@@ -89,13 +92,18 @@ export const Settings = () => {
         </table>
       </div>
 
-      <div className="bg-[#5C7A5F]/5 border border-[#5C7A5F]/20 p-5 rounded-xl">
-        <div className="flex gap-3">
-          <Shield className="w-5 h-5 text-[#5C7A5F] shrink-0 mt-0.5" />
-          <p className="text-xs text-[#3F5C42] leading-relaxed">
-            <strong>Access Control:</strong> The administrator can assign user access rights based on each user's role.
-            Access rights are configured on a module basis, allowing specific permissions for each module.
-          </p>
+      <div className="bg-primary/5 border border-primary/20 p-6 rounded-3xl">
+        <div className="flex gap-4">
+          <div className="p-2 bg-white rounded-xl shadow-sm h-fit">
+            <Shield className="w-5 h-5 text-primary" />
+          </div>
+          <div className="space-y-1">
+             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Access Control Policy</p>
+             <p className="text-xs text-text-soft leading-relaxed font-medium">
+               The administrator can assign user access rights based on each user's role.
+               Access rights are configured on a module basis, allowing specific permissions for each module.
+             </p>
+          </div>
         </div>
       </div>
     </div>

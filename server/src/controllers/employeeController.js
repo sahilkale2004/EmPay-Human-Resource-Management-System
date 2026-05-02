@@ -6,14 +6,21 @@ const { toMySQLDate, formatDateFields } = require('../utils/formatDate');
 
 const getAllEmployees = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      `SELECT e.*, 
-              u.login_id, u.is_active, u.role, u.email,
-              (SELECT status FROM attendances WHERE employee_id = e.id AND date = CURDATE()) as attendance_status,
-              (SELECT status FROM time_off_requests WHERE employee_id = e.id AND CURDATE() BETWEEN start_date AND end_date AND status = 'APPROVED' LIMIT 1) as leave_status
-       FROM employees e
-       JOIN users u ON e.user_id = u.id`
-    );
+    let query = `SELECT e.*, 
+                        u.login_id, u.is_active, u.role, u.email,
+                        (SELECT status FROM attendances WHERE employee_id = e.id AND date = CURDATE()) as attendance_status,
+                        (SELECT status FROM time_off_requests WHERE employee_id = e.id AND CURDATE() BETWEEN start_date AND end_date AND status = 'APPROVED' LIMIT 1) as leave_status
+                 FROM employees e
+                 JOIN users u ON e.user_id = u.id`;
+    
+    const queryParams = [];
+    
+    // If the requester is just an EMPLOYEE, only show other EMPLOYEES
+    if (req.user.role === 'EMPLOYEE') {
+      query += ` WHERE u.role = 'EMPLOYEE'`;
+    }
+
+    const [rows] = await pool.query(query, queryParams);
     
     const employees = rows.map(emp => {
       const formatted = formatDateFields(emp, ['date_of_joining', 'date_of_birth', 'created_at']);

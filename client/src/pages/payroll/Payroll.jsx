@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
-import { Play, CheckCircle, FileText, Eye, Printer, Plus } from 'lucide-react';
+import { Play, CheckCircle, FileText, Eye, Printer, Plus, Users, CreditCard, ArrowRight } from 'lucide-react';
 import clsx from 'clsx';
 
 export const Payroll = () => {
@@ -124,15 +124,19 @@ export const Payroll = () => {
 
       {activeTab === 'dashboard' ? (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <SummaryBox title="Total Employees" value={stats.totalEmployees} link="Click for detail" />
-            <SummaryBox title="Total Payroll Cost" value={`₹${parseFloat(stats.totalCost).toLocaleString()}`} link="Click for detail" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <SummaryBox title="Total Employees" value={stats.totalEmployees} link="View Directory" icon={Users} color="text-primary" bg="bg-primary/5" />
+            <SummaryBox title="Payroll Budget" value={`₹${parseFloat(stats.totalCost).toLocaleString()}`} link="View Budget" icon={CreditCard} color="text-secondary" bg="bg-secondary/5" />
             {canManage && (
-              <div className="bg-[#FDFBF8] border border-[#DDD8CF] p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
-                <h3 className="text-[#5C7A5F] font-bold text-base mb-2">Company Fund</h3>
-                <span className="text-3xl font-bold text-[#2A2520] mb-2">₹{parseFloat(fundBalance).toLocaleString()}</span>
-                <button onClick={handleAddFunds} className="text-[10px] font-bold text-[#5C7A5F] uppercase tracking-wider hover:underline bg-[#5C7A5F]/10 px-3 py-1 rounded-full mt-1 flex items-center gap-1">
-                  <Plus className="w-3 h-3" /> Add 50L
+              <div className="bg-white border border-border p-7 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
+                <div className="absolute top-[-20%] right-[-10%] w-24 h-24 bg-primary/5 rounded-full group-hover:scale-150 transition-transform"></div>
+                <h3 className="text-muted font-black text-[10px] uppercase tracking-[0.2em] mb-3">Company Fund</h3>
+                <span className="text-3xl font-bold text-text mb-3">₹{parseFloat(fundBalance).toLocaleString()}</span>
+                <button 
+                  onClick={handleAddFunds} 
+                  className="text-[10px] font-black text-primary uppercase tracking-[0.1em] hover:bg-primary/10 bg-primary/5 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 border border-primary/10"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Inject Funds
                 </button>
               </div>
             )}
@@ -263,11 +267,16 @@ export const Payroll = () => {
   );
 };
 
-const SummaryBox = ({ title, value, link }) => (
-  <div className="bg-[#FDFBF8] border border-[#DDD8CF] p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center">
-    <h3 className="text-[#5C7A5F] font-bold text-base mb-2">{title}</h3>
-    <span className="text-3xl font-bold text-[#2A2520] mb-2">{value}</span>
-    <button className="text-[10px] font-bold text-[#8B7355] uppercase tracking-wider hover:underline">{link}</button>
+const SummaryBox = ({ title, value, link, icon: Icon, color, bg }) => (
+  <div className={clsx("bg-white border border-border p-7 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-2xl transition-all duration-500 relative overflow-hidden", bg)}>
+    <div className={clsx("w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110", bg, color)}>
+      <Icon className="w-6 h-6" />
+    </div>
+    <h3 className="text-muted font-black text-[10px] uppercase tracking-[0.2em] mb-2">{title}</h3>
+    <span className="text-3xl font-bold text-text mb-3">{value}</span>
+    <button className="text-[10px] font-black text-text-soft uppercase tracking-[0.1em] hover:text-primary transition-colors flex items-center gap-1">
+      {link} <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+    </button>
   </div>
 );
 
