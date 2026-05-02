@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
 import toast from 'react-hot-toast';
@@ -55,79 +55,82 @@ export const TimeOff = () => {
   };
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex items-center gap-4 bg-white p-2 rounded border border-gray-300">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[#2A2520]">Time Off</h1>
+          <p className="text-[#6B6259] text-sm mt-0.5">Manage leave requests and allocations</p>
+        </div>
         <button 
           onClick={() => setShowForm(true)}
-          className="bg-primary text-white px-6 py-1.5 rounded text-sm font-bold uppercase tracking-wider"
+          className="flex items-center gap-2 bg-[#5C7A5F] hover:bg-[#3F5C42] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md active:scale-95"
         >
-          NEW
+          <Plus className="w-4 h-4" /> New Request
         </button>
-        <div className="flex-1 relative">
-          <input 
-            type="text" 
-            placeholder="Searchbar" 
-            className="w-full bg-white border border-gray-300 rounded px-4 py-1.5 text-sm focus:outline-none focus:border-primary text-center"
-          />
-        </div>
       </div>
 
       {/* Summary Boxes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {allocations.map(alloc => (
-          <div key={alloc.id} className="bg-white border border-gray-300 p-6 rounded shadow-sm text-center">
-            <h3 className="text-primary font-bold text-lg mb-1">{alloc.time_off_type_name}</h3>
-            <p className="text-gray-400 text-xs font-bold uppercase">{parseFloat(alloc.remaining_days).toFixed(0)} days Available</p>
+          <div key={alloc.id} className="bg-[#FDFBF8] border border-[#DDD8CF] p-6 rounded-2xl shadow-sm">
+            <h3 className="text-[#5C7A5F] font-bold text-base mb-1">{alloc.time_off_type_name}</h3>
+            <p className="text-[#9C9286] text-sm font-medium">{parseFloat(alloc.remaining_days).toFixed(0)} days available</p>
+            <div className="mt-3 h-2 bg-[#EDE9E3] rounded-full overflow-hidden">
+              <div className="h-full bg-[#5C7A5F] rounded-full" style={{width: `${Math.min((parseFloat(alloc.remaining_days)/20)*100, 100)}%`}}></div>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-300 rounded overflow-hidden shadow-sm">
+      <div className="bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl overflow-hidden shadow-sm">
         <table className="w-full text-sm text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-300">
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Name</th>
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Start Date</th>
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">End Date</th>
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Time Off Type</th>
-              <th className="px-6 py-3 border-r border-gray-300 font-medium text-gray-700">Status</th>
-              {isManagement && <th className="px-6 py-3 font-medium text-gray-700 text-center">Actions</th>}
+            <tr className="bg-[#F5F2ED] border-b border-[#DDD8CF]">
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Start Date</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">End Date</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Type</th>
+              <th className="px-6 py-3.5 border-r border-[#DDD8CF] font-semibold text-[#6B6259] text-xs uppercase tracking-wider">Status</th>
+              {isManagement && <th className="px-6 py-3.5 font-semibold text-[#6B6259] text-xs uppercase tracking-wider text-center">Actions</th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-300">
+          <tbody className="divide-y divide-[#EDE9E3]">
             {loading ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center animate-pulse text-gray-400">Loading...</td></tr>
+              <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">Loadingâ€¦</td></tr>
             ) : requests.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400 italic">No requests found.</td></tr>
+              <tr><td colSpan={6} className="px-6 py-8 text-center text-[#9C9286] text-sm italic">No requests found.</td></tr>
             ) : (
               requests.map((req) => (
-                <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-3 border-r border-gray-300 text-gray-600 font-medium">[{req.first_name} {req.last_name}]</td>
-                  <td className="px-6 py-3 border-r border-gray-300 text-gray-600">{new Date(req.start_date).toLocaleDateString('en-GB')}</td>
-                  <td className="px-6 py-3 border-r border-gray-300 text-gray-600">{new Date(req.end_date).toLocaleDateString('en-GB')}</td>
-                  <td className="px-6 py-3 border-r border-gray-300 text-primary font-medium">{req.time_off_type_name}</td>
-                  <td className="px-6 py-3 border-r border-gray-300">
+                <tr key={req.id} className="hover:bg-[#F5F2ED] transition-colors">
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#2A2520] font-medium">{req.first_name} {req.last_name}</td>
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#6B6259]">{new Date(req.start_date).toLocaleDateString('en-GB')}</td>
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#6B6259]">{new Date(req.end_date).toLocaleDateString('en-GB')}</td>
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3] text-[#5C7A5F] font-medium">{req.time_off_type_name}</td>
+                  <td className="px-6 py-3.5 border-r border-[#EDE9E3]">
                     <span className={clsx(
-                      "font-bold text-xs uppercase",
-                      req.status === 'APPROVED' ? 'text-green-600' : req.status === 'REFUSED' ? 'text-red-600' : 'text-amber-500'
+                      "px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide",
+                      req.status === 'APPROVED' ? 'bg-[#4A8C4E]/10 text-[#4A8C4E]' : 
+                      req.status === 'REFUSED' ? 'bg-[#B84040]/10 text-[#B84040]' : 
+                      'bg-[#C28A2B]/10 text-[#C28A2B]'
                     )}>
                       {req.status}
                     </span>
                   </td>
                   {isManagement && (
-                    <td className="px-6 py-3 flex items-center justify-center gap-2">
+                    <td className="px-6 py-3.5 flex items-center justify-center gap-2">
                       {req.status === 'PENDING' ? (
                         <>
-                          <button onClick={() => handleApprove(req.id)} className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-white hover:bg-green-600">
+                          <button onClick={() => handleApprove(req.id)} className="w-7 h-7 bg-[#4A8C4E] rounded-lg flex items-center justify-center text-white hover:bg-[#3A7040] transition-colors">
                             <Check className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleRefuse(req.id)} className="w-6 h-6 bg-red-500 rounded flex items-center justify-center text-white hover:bg-red-600">
+                          <button onClick={() => handleRefuse(req.id)} className="w-7 h-7 bg-[#B84040] rounded-lg flex items-center justify-center text-white hover:bg-[#8B2F2F] transition-colors">
                             <X className="w-4 h-4" />
                           </button>
                         </>
                       ) : (
-                        <div className="w-6 h-6"></div>
+                        <div className="w-7 h-7"></div>
                       )}
                     </td>
                   )}
@@ -138,21 +141,21 @@ export const TimeOff = () => {
         </table>
       </div>
 
-      {/* Modal Placeholder logic could go here */}
-      {showForm && <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-2xl border border-gray-300 w-full max-w-lg p-6">
-           <h2 className="text-lg font-bold mb-6">Time off Request</h2>
+      {/* Modal */}
+      {showForm && <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-[#FDFBF8] rounded-2xl shadow-2xl border border-[#DDD8CF] w-full max-w-lg p-7">
+           <h2 className="text-lg font-bold text-[#2A2520] mb-6">Time Off Request</h2>
            <div className="space-y-4">
               <ModalField label="Employee" value="[Employee Name]" />
-              <ModalField label="Time off Type" value="[Paid Time Off]" />
+              <ModalField label="Time Off Type" value="[Paid Time Off]" />
               <div className="flex gap-4">
                 <ModalField label="From" value="Aug 14" className="flex-1" />
                 <ModalField label="To" value="Aug 16" className="flex-1" />
               </div>
               <ModalField label="Allocation" value="03.00 days" />
-              <div className="flex gap-4 pt-6">
-                <button onClick={() => setShowForm(false)} className="flex-1 bg-primary text-white py-2 rounded font-bold uppercase">Confirm</button>
-                <button onClick={() => setShowForm(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded font-bold uppercase">Cancel</button>
+              <div className="flex gap-3 pt-4">
+                <button onClick={() => setShowForm(false)} className="flex-1 bg-[#5C7A5F] hover:bg-[#3F5C42] text-white py-2.5 rounded-xl font-semibold transition-all">Confirm</button>
+                <button onClick={() => setShowForm(false)} className="flex-1 bg-[#EDE9E3] hover:bg-[#DDD8CF] text-[#6B6259] py-2.5 rounded-xl font-semibold transition-all">Cancel</button>
               </div>
            </div>
         </div>
@@ -163,7 +166,7 @@ export const TimeOff = () => {
 
 const ModalField = ({ label, value, className }) => (
   <div className={className}>
-    <label className="block text-xs font-bold text-gray-400 uppercase mb-1">{label}</label>
-    <div className="border-b border-gray-300 py-1 text-gray-700 font-medium">{value}</div>
+    <label className="block text-xs font-bold text-[#9C9286] uppercase tracking-widest mb-1.5">{label}</label>
+    <div className="border-b border-[#DDD8CF] py-1.5 text-[#2A2520] font-medium">{value}</div>
   </div>
 );

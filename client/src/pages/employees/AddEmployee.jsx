@@ -55,23 +55,23 @@ export const AddEmployee = () => {
       <div className="flex items-center gap-4">
         <button 
           onClick={() => navigate('/employees')}
-          className="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-all"
+          className="p-2 text-[#9C9286] hover:bg-[#EDE9E3] rounded-xl transition-all"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">New Employee</h1>
-          <p className="text-gray-500 font-medium mt-1">Create a new user account and employee profile.</p>
+          <h1 className="text-2xl font-bold text-[#2A2520]">New Employee</h1>
+          <p className="text-[#6B6259] text-sm mt-0.5">Create a new user account and employee profile.</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-        <div className="bg-primary/5 p-6 border-b border-gray-100 flex gap-4 text-primary text-sm font-bold">
-          <Info className="w-5 h-5 shrink-0" />
+      <div className="bg-[#FDFBF8] rounded-2xl shadow-sm border border-[#DDD8CF] overflow-hidden">
+        <div className="bg-[#5C7A5F]/5 border-[#5C7A5F]/15 border-b p-5 flex gap-3 text-[#3F5C42] text-sm">
+          <Info className="w-5 h-5 shrink-0 mt-0.5 text-[#5C7A5F]" />
           <p>The system will auto-generate a Login ID based on the company name, employee name, and joining year. A temporary password will also be created.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 space-y-10">
+        <form onSubmit={handleSubmit} className="p-8 space-y-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
             <Section title="Basic Info">
               <Field label="First Name" name="first_name" value={formData.first_name} onChange={handleChange} required />
@@ -106,18 +106,18 @@ export const AddEmployee = () => {
             </Section>
           </div>
 
-          <div className="flex justify-end gap-4 pt-8 border-t border-gray-100">
+          <div className="flex justify-end gap-4 pt-8 border-t border-[#EDE9E3]">
             <button 
               type="button"
               onClick={() => navigate('/employees')}
-              className="px-6 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all"
+              className="px-6 py-3 text-[#6B6259] font-semibold hover:bg-[#EDE9E3] rounded-xl transition-all"
             >
               Discard
             </button>
             <button 
               type="submit" 
               disabled={loading}
-              className="bg-primary hover:bg-blue-600 text-white px-10 py-3 rounded-2xl font-black shadow-lg shadow-primary/30 transition-all flex items-center gap-2 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
+              className="bg-[#5C7A5F] hover:bg-[#3F5C42] text-white px-8 py-3 rounded-xl font-semibold shadow-md shadow-[#5C7A5F]/20 transition-all flex items-center gap-2 active:scale-[0.98] disabled:opacity-70"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
               Create Employee
@@ -130,12 +130,12 @@ export const AddEmployee = () => {
 };
 
 const Section = ({ title, children }) => (
-  <div className="space-y-6">
-    <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-      <div className="w-1 h-4 bg-primary rounded-full"></div>
+  <div className="space-y-5">
+    <h3 className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest flex items-center gap-2">
+      <div className="w-1 h-3.5 bg-[#5C7A5F] rounded-full"></div>
       {title}
     </h3>
-    <div className="space-y-5">
+    <div className="space-y-4">
       {children}
     </div>
   </div>
@@ -144,14 +144,14 @@ const Section = ({ title, children }) => (
 const Field = ({ label, name, value, onChange, type = "text", options = [], required = false }) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputClasses = clsx(
-    "w-full bg-gray-50 border rounded-2xl px-4 py-3 text-gray-900 font-bold outline-none transition-all",
-    isFocused ? "border-primary ring-4 ring-primary/10 bg-white" : "border-gray-100 hover:border-gray-200"
+    "w-full bg-[#F5F2ED] border rounded-xl px-4 py-2.5 text-[#2A2520] font-medium outline-none transition-all text-sm",
+    isFocused ? "border-[#5C7A5F] ring-2 ring-[#5C7A5F]/10 bg-[#FDFBF8]" : "border-[#DDD8CF] hover:border-[#B8B0A5]"
   );
 
   return (
     <div>
-      <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">
-        {label} {required && <span className="text-red-500">*</span>}
+      <label className="block text-[10px] font-bold text-[#9C9286] uppercase tracking-widest mb-1.5 px-0.5">
+        {label} {required && <span className="text-[#B84040]">*</span>}
       </label>
       
       {type === 'select' ? (

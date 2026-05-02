@@ -10,8 +10,9 @@ export const Layout = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F2ED]">
+        <div className="w-12 h-12 border-[3px] border-[#5C7A5F] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-[#6B6259] text-sm font-medium tracking-wide">Loading EmPay…</p>
       </div>
     );
   }
@@ -21,11 +22,11 @@ export const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex font-sans">
+    <div className="min-h-screen bg-[#F5F2ED] flex font-sans">
       <Sidebar />
       <div className="flex-1 ml-56 flex flex-col min-h-screen">
         <Navbar />
-        <main className="flex-1 p-10 overflow-y-auto">
+        <main className="flex-1 p-8 overflow-y-auto animate-fade-in-up">
           <Outlet />
         </main>
       </div>
