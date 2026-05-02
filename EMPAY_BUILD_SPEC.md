@@ -8,9 +8,9 @@
 **EmPay** is a full-stack Human Resource Management System (HRMS) designed for startups, institutions, and SMEs. It covers employee management, attendance tracking, leave (time-off) management, payroll processing, and analytics — all from a single unified interface.
 
 ### Tech Stack Recommendation
-- **Frontend:** React (with React Router), Tailwind CSS, Recharts (for analytics)
-- **Backend:** Node.js + Express (or Django / FastAPI)
-- **Database:** PostgreSQL (preferred) or SQLite for local/offline
+- **Frontend:** React (with React Router), CSS, Recharts (for analytics)
+- **Backend:** Node.js + Express
+- **Database:** MySQL for local/offline
 - **Auth:** JWT-based authentication with role-based access control (RBAC)
 - **PDF Generation:** jsPDF or Puppeteer (for payslips)
 - **Version Control:** Git (meaningful commits required)
