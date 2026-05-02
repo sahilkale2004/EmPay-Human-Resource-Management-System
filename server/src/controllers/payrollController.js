@@ -3,7 +3,14 @@ const { generatePayslipsForPayrun } = require('../services/payrollService');
 
 const getPayruns = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT r.*, u.login_id as created_by_id FROM payruns r JOIN users u ON r.created_by = u.id ORDER BY r.created_at DESC');
+    const [rows] = await pool.query(`
+      SELECT r.*, u.login_id as created_by_id,
+      (SELECT COUNT(*) FROM payslips WHERE payrun_id = r.id) as employee_count,
+      (SELECT SUM(net_payable) FROM payslips WHERE payrun_id = r.id) as total_amount
+      FROM payruns r 
+      JOIN users u ON r.created_by = u.id 
+      ORDER BY r.created_at DESC
+    `);
     res.json({ success: true, data: rows });
   } catch (err) {
     console.error('GET payruns error:', err);
@@ -102,11 +109,48 @@ const getPayslipById = async (req, res) => {
   }
 };
 
+const getPayrollStats = async (req, res) => {
+  try {
+    const [empRows] = await pool.query('SELECT COUNT(*) as count FROM employees');
+    const [costRows] = await pool.query("SELECT SUM(net_payable) as total FROM payslips WHERE status = 'DONE'");
+    res.json({ 
+      success: true, 
+      data: { 
+        totalEmployees: empRows[0].count || 0, 
+        totalCost: costRows[0].total || 0 
+      } 
+    });
+  } catch (err) {
+    console.error('GET payroll stats error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+const getPayrollReportSummary = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        SUM(basic_salary) as total_basic,
+        SUM(hra + standard_allowance + performance_bonus + travel_allowance + food_allowance) as total_allowances,
+        SUM(pf_employee + professional_tax) as total_deductions,
+        SUM(net_payable) as total_net
+      FROM payslips 
+      WHERE status = 'DONE'
+    `);
+    res.json({ success: true, data: rows[0] });
+  } catch (err) {
+    console.error('GET report summary error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   getPayruns,
   createPayrun,
   generatePayslips,
   validatePayrun,
   getPayslips,
-  getPayslipById
+  getPayslipById,
+  getPayrollStats,
+  getPayrollReportSummary
 };

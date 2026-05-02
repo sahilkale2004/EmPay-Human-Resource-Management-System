@@ -82,7 +82,7 @@ export const EmployeesList = () => {
               </div>
 
               <p className="font-medium text-gray-600 text-center text-sm">
-                [{emp.first_name} {emp.last_name}]
+                {emp.first_name} {emp.last_name}
               </p>
             </div>
           ))

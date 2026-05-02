@@ -14,6 +14,7 @@ export const Payroll = () => {
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [showRunModal, setShowRunModal] = useState(false);
   const [newRun, setNewRun] = useState({ name: '', period_start: '', period_end: '' });
+  const [stats, setStats] = useState({ totalEmployees: 0, totalCost: 0 });
 
   const canManage = ['ADMIN', 'PAYROLL_OFFICER'].includes(user?.role);
 
@@ -26,6 +27,9 @@ export const Payroll = () => {
       if (canManage) {
         const runRes = await api.get('/payroll/runs');
         setPayruns(runRes.data.data || []);
+        
+        const statsRes = await api.get('/payroll/stats');
+        setStats(statsRes.data.data || { totalEmployees: 0, totalCost: 0 });
       }
       const slipRes = await api.get('/payroll/slips');
       setPayslips(slipRes.data.data || []);
@@ -107,8 +111,8 @@ export const Payroll = () => {
       {activeTab === 'dashboard' ? (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <SummaryBox title="Total Employees" value={payslips.length} link="Click for detail" />
-            <SummaryBox title="Total Payroll Cost" value="₹45,50,000" link="Click for detail" />
+            <SummaryBox title="Total Employees" value={stats.totalEmployees} link="Click for detail" />
+            <SummaryBox title="Total Payroll Cost" value={`₹${parseFloat(stats.totalCost).toLocaleString()}`} link="Click for detail" />
           </div>
 
           <div className="bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl overflow-hidden shadow-sm">

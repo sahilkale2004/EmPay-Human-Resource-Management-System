@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { Layout } from './components/Layout';
 import { Toaster } from 'react-hot-toast';
 
+import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { EmployeesList } from './pages/employees/EmployeesList';
@@ -20,12 +21,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Public landing page */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
+          {/* Authenticated layout */}
           <Route element={<Layout />}>
-            <Route path="/" element={<EmployeesList />} />
-
             <Route path="/employees">
               <Route index element={<EmployeesList />} />
               <Route path="new" element={<AddEmployee />} />

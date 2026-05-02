@@ -1,11 +1,4 @@
 const pool = require('../config/db');
-
-/**
- * Helper to get number of weekdays in a period (excluding weekends)
- * In many orgs, weekends might be counted if monthly wage is fixed, 
- * but let's assume total days in month for simplicity, or working days.
- * Spec says "total working days in month". 
- */
 function getWorkingDays(startDate, endDate) {
   let count = 0;
   let curDate = new Date(startDate);

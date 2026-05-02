@@ -53,7 +53,7 @@ export const Dashboard = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-10 h-10 text-[#5C7A5F] animate-spin" />
+      <Loader2 className="w-10 h-10 text-#5C7A5F animate-spin" />
     </div>
   );
 
@@ -97,7 +97,7 @@ const AdminView = ({ data, navigate }) => (
       <div className="lg:col-span-2 space-y-5">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#2A2520]">Team Overview</h2>
-          <button onClick={() => navigate('/employees')} className="text-[#5C7A5F] font-semibold text-sm flex items-center gap-1 hover:text-[#3F5C42] transition-colors">
+          <button onClick={() => navigate('/employees')} className="text-#5C7A5F font-semibold text-sm flex items-center gap-1 hover:text-#3F5C42 transition-colors">
             View All <ChevronRight className="w-4 h-4" />
           </button>
         </div>

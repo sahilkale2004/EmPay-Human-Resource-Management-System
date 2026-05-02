@@ -22,4 +22,10 @@ router.get('/slips', authenticateToken, payrollController.getPayslips);
 // GET /api/payroll/slips/:id
 router.get('/slips/:id', authenticateToken, payrollController.getPayslipById);
 
+// GET /api/payroll/stats
+router.get('/stats', authenticateToken, requireRole(['ADMIN', 'PAYROLL_OFFICER']), payrollController.getPayrollStats);
+
+// GET /api/payroll/report-summary
+router.get('/report-summary', authenticateToken, requireRole(['ADMIN', 'PAYROLL_OFFICER']), payrollController.getPayrollReportSummary);
+
 module.exports = router;
