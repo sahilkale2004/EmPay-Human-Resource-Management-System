@@ -86,6 +86,15 @@ export const Payroll = () => {
     }
   };
 
+  const handleExport = async (id) => {
+    try {
+      const { data } = await api.post(`/payroll/runs/${id}/export`);
+      toast.success(data.message || 'Payslips exported successfully');
+    } catch (err) {
+      toast.error('Export failed');
+    }
+  };
+
   if (selectedSlip) return <PayslipDetail slip={selectedSlip} onBack={() => setSelectedSlip(null)} />;
 
   return (
@@ -159,8 +168,8 @@ export const Payroll = () => {
                 ) : payruns.map(run => (
                   <tr key={run.id} className="hover:bg-[#F5F2ED] transition-colors">
                     <td className="px-6 py-3.5 font-semibold text-[#2A2520]">{run.name}</td>
-                    <td className="px-6 py-3.5 text-[#6B6259]">{run.employee_count || '12'} Employees</td>
-                    <td className="px-6 py-3.5 text-[#2A2520] font-bold">₹{parseFloat(run.total_amount || 0).toLocaleString()}</td>
+                    <td className="px-6 py-3.5 text-[#6B6259]">{run.employee_count ?? 0} Employees</td>
+                    <td className="px-6 py-3.5 text-[#2A2520] font-bold">₹{parseFloat(run.total_amount || 0).toLocaleString('en-IN')}</td>
                     <td className="px-6 py-3.5">
                       <span className={clsx(
                         "px-2.5 py-1 rounded-full text-xs font-bold uppercase",
@@ -179,6 +188,9 @@ export const Payroll = () => {
                         )}
                         {run.status === 'VALIDATED' && (
                           <span className="text-[10px] text-gray-400 font-bold uppercase">Locked</span>
+                        )}
+                        {run.employee_count > 0 && (
+                          <button onClick={() => handleExport(run.id)} className="text-xs font-bold text-[#2A2520] hover:underline uppercase ml-2">Export</button>
                         )}
                       </td>
                     )}
@@ -206,9 +218,9 @@ export const Payroll = () => {
               ) : payslips.map(slip => (
                 <tr key={slip.id} className="hover:bg-[#F5F2ED] transition-colors">
                   <td className="px-6 py-3.5 font-semibold text-[#2A2520]">{slip.first_name} {slip.last_name}</td>
-                  <td className="px-6 py-3.5 text-[#6B6259]">{slip.pay_period}</td>
-                  <td className="px-6 py-3.5 text-[#6B6259]">₹{parseFloat(slip.gross_wage).toLocaleString()}</td>
-                  <td className="px-6 py-3.5 text-[#4A8C4E] font-bold">₹{parseFloat(slip.net_payable).toLocaleString()}</td>
+                  <td className="px-6 py-3.5 text-[#6B6259]">{slip.payrun_name}</td>
+                  <td className="px-6 py-3.5 text-[#6B6259]">₹{parseFloat(slip.gross_wage).toLocaleString('en-IN')}</td>
+                  <td className="px-6 py-3.5 text-[#4A8C4E] font-bold">₹{parseFloat(slip.net_payable).toLocaleString('en-IN')}</td>
                   <td className="px-6 py-3.5 text-center">
                     <button onClick={() => setSelectedSlip(slip)} className="text-[#5C7A5F] hover:text-[#3F5C42] font-semibold text-xs uppercase tracking-wide transition-colors">View Slip</button>
                   </td>
@@ -284,17 +296,19 @@ const PayslipDetail = ({ slip, onBack }) => (
   <div className="space-y-6 max-w-4xl mx-auto">
     <div className="flex justify-between items-center bg-[#FDFBF8] p-4 border border-[#DDD8CF] rounded-2xl shadow-sm">
       <button onClick={onBack} className="text-[#6B6259] hover:text-[#2A2520] flex items-center gap-2 text-sm font-semibold transition-colors">
-        <Printer className="w-4 h-4" /> Print
+        ← Back
       </button>
       <h2 className="font-bold text-[#2A2520] uppercase tracking-widest text-sm">Payslip Details</h2>
-      <div className="w-20"></div>
+      <button onClick={() => window.print()} className="text-[#5C7A5F] hover:text-[#4A644C] flex items-center gap-2 text-sm font-semibold transition-colors">
+        <Printer className="w-4 h-4" /> Print
+      </button>
     </div>
 
     <div className="bg-[#FDFBF8] border border-[#DDD8CF] p-10 rounded-2xl shadow-sm space-y-8">
       <div className="flex justify-between border-b border-[#EDE9E3] pb-8">
         <div>
           <h1 className="text-2xl font-bold text-[#5C7A5F] mb-1">EmPay HRMS</h1>
-          <p className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest">Salary Slip for month of {slip.pay_period}</p>
+          <p className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest">Salary Slip for month of {slip.payrun_name}</p>
         </div>
         <div className="text-right space-y-1">
           <InfoRow label="Employee Name" value={`${slip.first_name} ${slip.last_name}`} />
@@ -307,7 +321,7 @@ const PayslipDetail = ({ slip, onBack }) => (
         <div className="space-y-4">
           <h3 className="bg-[#F5F2ED] border border-[#DDD8CF] px-4 py-2 font-bold text-xs uppercase tracking-widest text-[#5C7A5F] rounded-lg">Earnings</h3>
           <div className="space-y-2">
-            <SlipItem label="Basic Salary" value={slip.basic_wage} />
+            <SlipItem label="Basic Salary" value={slip.basic_salary} />
             <SlipItem label="House Rent Allowance" value={slip.hra} />
             <SlipItem label="Standard Allowance" value={slip.standard_allowance} />
           </div>
@@ -315,7 +329,7 @@ const PayslipDetail = ({ slip, onBack }) => (
         <div className="space-y-4">
           <h3 className="bg-[#F5F2ED] border border-[#DDD8CF] px-4 py-2 font-bold text-xs uppercase tracking-widest text-[#B84040] rounded-lg">Deductions</h3>
           <div className="space-y-2">
-            <SlipItem label="Provident Fund" value={slip.pf} />
+            <SlipItem label="Provident Fund" value={slip.pf_employee} />
             <SlipItem label="Professional Tax" value={slip.professional_tax} />
           </div>
         </div>
@@ -323,7 +337,7 @@ const PayslipDetail = ({ slip, onBack }) => (
 
       <div className="flex justify-between items-center bg-[#1C2B1E] p-5 text-white rounded-xl font-bold uppercase tracking-widest">
         <span>Total Net Payable</span>
-        <span className="text-2xl">₹{parseFloat(slip.net_payable).toLocaleString()}</span>
+        <span className="text-2xl">₹{parseFloat(slip.net_payable).toLocaleString('en-IN')}</span>
       </div>
     </div>
   </div>
@@ -339,6 +353,6 @@ const InfoRow = ({ label, value }) => (
 const SlipItem = ({ label, value }) => (
   <div className="flex justify-between text-sm py-1 border-b border-[#EDE9E3]">
     <span className="text-[#6B6259]">{label}</span>
-    <span className="font-bold text-[#2A2520]">₹{parseFloat(value || 0).toLocaleString()}</span>
+    <span className="font-bold text-[#2A2520]">₹{parseFloat(value || 0).toLocaleString('en-IN')}</span>
   </div>
 );

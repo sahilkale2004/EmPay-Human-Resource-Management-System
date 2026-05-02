@@ -88,9 +88,10 @@ const validatePayrun = async (req, res) => {
 const getPayslips = async (req, res) => {
   try {
     let query = `
-      SELECT p.*, e.first_name, e.last_name, pr.name as payrun_name 
+      SELECT p.*, e.first_name, e.last_name, e.department, u.login_id, pr.name as payrun_name 
       FROM payslips p
       JOIN employees e ON p.employee_id = e.id
+      JOIN users u ON e.user_id = u.id
       JOIN payruns pr ON p.payrun_id = pr.id
     `;
     const params = [];
@@ -106,6 +107,46 @@ const getPayslips = async (req, res) => {
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
+
+const path = require('path');
+const { generatePayslipPDF } = require('../services/pdfService');
+
+const exportPayrun = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get payslips for the payrun
+    const [payslips] = await pool.query(`
+      SELECT p.*, e.first_name, e.last_name, e.department, u.login_id, pr.name as payrun_name 
+      FROM payslips p
+      JOIN employees e ON p.employee_id = e.id
+      JOIN users u ON e.user_id = u.id
+      JOIN payruns pr ON p.payrun_id = pr.id
+      WHERE p.payrun_id = ?
+    `, [id]);
+
+    if (payslips.length === 0) {
+      return res.status(404).json({ success: false, error: 'No payslips found to export' });
+    }
+
+    const payrunName = payslips[0].payrun_name;
+    const exportDir = path.join(__dirname, '../../exports/payslips');
+    
+    // Generate PDFs
+    const exportPromises = payslips.map(slip => generatePayslipPDF(slip, payrunName, exportDir));
+    const paths = await Promise.all(exportPromises);
+
+    res.json({ 
+      success: true, 
+      message: `Exported ${paths.length} payslips successfully`,
+      path: path.join(exportDir, payrunName)
+    });
+  } catch (err) {
+    console.error('Export payrun error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error during export' });
+  }
+};
+
 
 const getPayslipById = async (req, res) => {
   try {
@@ -209,6 +250,7 @@ module.exports = {
   generatePayslips,
   validatePayrun,
   getPayslips,
+  exportPayrun,
   getPayslipById,
   getPayrollStats,
   getPayrollReportSummary,

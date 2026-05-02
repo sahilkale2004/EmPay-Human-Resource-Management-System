@@ -50,41 +50,73 @@ const generatePayslipsForPayrun = async (payrunId) => {
       if (structures.length === 0) continue; // Skip employees without a salary structure
       const structure = structures[0];
 
-      // 4. Calculate Attendance Days
-      // Count distinct days present or half day
-      const [att] = await connection.query(
-        `SELECT COUNT(DISTINCT date) as days_present 
+      // 4. Calculate Absences & Unpaid Leaves
+      const [absences] = await connection.query(
+        `SELECT COUNT(DISTINCT date) as days_absent 
          FROM attendances 
-         WHERE employee_id = ? AND date >= ? AND date <= ? AND status IN ('PRESENT', 'HALF_DAY')`,
+         WHERE employee_id = ? AND date >= ? AND date <= ? AND status = 'ABSENT'`,
         [emp.id, payrun.period_start, payrun.period_end]
       );
-      const attendanceDays = att[0].days_present;
+      const absentDays = absences[0].days_absent;
 
-      // 5. Calculate Paid Leave Days
-      const [leaves] = await connection.query(
-        `SELECT r.start_date, r.end_date, r.number_of_days, t.is_paid 
+      const [unpaidLeaves] = await connection.query(
+        `SELECT r.start_date, r.end_date 
          FROM time_off_requests r
          JOIN time_off_types t ON r.time_off_type_id = t.id
          WHERE r.employee_id = ? AND r.status = 'APPROVED' 
-         AND r.start_date <= ? AND r.end_date >= ?`,
+         AND r.start_date <= ? AND r.end_date >= ? AND t.is_paid = FALSE`,
+        [emp.id, payrun.period_end, payrun.period_start]
+      );
+
+      let unpaidLeaveDays = 0;
+      for (const leave of unpaidLeaves) {
+        const lStart = new Date(leave.start_date) > periodStart ? new Date(leave.start_date) : periodStart;
+        const lEnd = new Date(leave.end_date) < periodEnd ? new Date(leave.end_date) : periodEnd;
+        if (lStart <= lEnd) {
+          unpaidLeaveDays += getWorkingDays(lStart, lEnd);
+        }
+      }
+
+      // 5. Paid Leaves (for tracking/hourly)
+      const [paidLeaves] = await connection.query(
+        `SELECT r.start_date, r.end_date 
+         FROM time_off_requests r
+         JOIN time_off_types t ON r.time_off_type_id = t.id
+         WHERE r.employee_id = ? AND r.status = 'APPROVED' 
+         AND r.start_date <= ? AND r.end_date >= ? AND t.is_paid = TRUE`,
         [emp.id, payrun.period_end, payrun.period_start]
       );
 
       let paidLeaveDays = 0;
-      // Precise overlap calculation
-      for (const leave of leaves) {
-        if (leave.is_paid) {
-          const lStart = new Date(leave.start_date) > periodStart ? new Date(leave.start_date) : periodStart;
-          const lEnd = new Date(leave.end_date) < periodEnd ? new Date(leave.end_date) : periodEnd;
-          
-          if (lStart <= lEnd) {
-            paidLeaveDays += getWorkingDays(lStart, lEnd); // Only count working days inside the leave
-          }
+      for (const leave of paidLeaves) {
+        const lStart = new Date(leave.start_date) > periodStart ? new Date(leave.start_date) : periodStart;
+        const lEnd = new Date(leave.end_date) < periodEnd ? new Date(leave.end_date) : periodEnd;
+        if (lStart <= lEnd) {
+          paidLeaveDays += getWorkingDays(lStart, lEnd);
         }
       }
 
       // 6. Computations
-      const payableDays = attendanceDays + paidLeaveDays;
+      let payableDays = 0;
+      let attendanceDays = 0; // For logging
+
+      if (structure.wage_type === 'MONTHLY') {
+        // For salaried employees, assume full month minus explicitly recorded absences or unpaid leaves
+        payableDays = totalWorkingDays - unpaidLeaveDays - absentDays;
+        if (payableDays < 0) payableDays = 0;
+        attendanceDays = payableDays - paidLeaveDays; // roughly
+        if (attendanceDays < 0) attendanceDays = 0;
+      } else {
+        // For hourly, rely strictly on explicit check-ins
+        const [att] = await connection.query(
+          `SELECT COUNT(DISTINCT date) as days_present 
+           FROM attendances 
+           WHERE employee_id = ? AND date >= ? AND date <= ? AND status IN ('PRESENT', 'HALF_DAY')`,
+          [emp.id, payrun.period_start, payrun.period_end]
+        );
+        attendanceDays = att[0].days_present;
+        payableDays = attendanceDays + paidLeaveDays;
+      }
       const dailyRate = structure.monthly_wage / totalWorkingDays;
       
       // Prevent gross wage from exceeding monthly wage if they over-worked somehow without overtime rules
@@ -105,9 +137,9 @@ const generatePayslipsForPayrun = async (payrunId) => {
       const foodAllowance = structure.food_allowance * ratio;
 
       // Deductions
-      const pfEmployee = basicSalary * (structure.pf_pct / 100);
-      const pfEmployer = basicSalary * (structure.pf_pct / 100);
-      const professionalTax = payableDays > 0 ? structure.professional_tax : 0; // Don't deduct if didn't work at all
+      const pfEmployee = basicSalary * (Number(structure.pf_pct) / 100);
+      const pfEmployer = basicSalary * (Number(structure.pf_pct) / 100);
+      const professionalTax = payableDays > 0 ? Number(structure.professional_tax) : 0; // Don't deduct if didn't work at all
       
       const totalDeductions = pfEmployee + professionalTax;
       const netPayable = grossWage - totalDeductions;
