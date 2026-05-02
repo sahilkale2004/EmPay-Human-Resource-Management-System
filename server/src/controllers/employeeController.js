@@ -15,9 +15,12 @@ const getAllEmployees = async (req, res) => {
     
     const queryParams = [];
     
+    // Default filter: only active users
+    query += ` WHERE u.is_active = TRUE`;
+    
     // If the requester is just an EMPLOYEE, only show other EMPLOYEES
     if (req.user.role === 'EMPLOYEE') {
-      query += ` WHERE u.role = 'EMPLOYEE'`;
+      query += ` AND u.role = 'EMPLOYEE'`;
     }
 
     const [rows] = await pool.query(query, queryParams);

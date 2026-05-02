@@ -140,7 +140,14 @@ const refuseRequest = async (req, res) => {
 
 const getAllocations = async (req, res) => {
   try {
-    const employee_id = req.user.employee_id;
+    let employee_id = req.user.employee_id;
+    
+    // Feature: Allow management to view allocations of any employee
+    const isManagement = ['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER'].includes(req.user.role);
+    if (isManagement && req.query.employee_id) {
+      employee_id = req.query.employee_id;
+    }
+
     if (!employee_id) return res.json({ success: true, data: [] });
 
     const [rows] = await pool.query(

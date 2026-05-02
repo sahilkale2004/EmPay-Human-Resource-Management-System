@@ -18,8 +18,8 @@ const upload = require('../config/upload');
 // PUT /api/employees/:id (All roles can update self, Admin/HR can update any)
 router.put('/:id', authenticateToken, upload.single('profile_picture'), employeeController.updateEmployee);
 
-// DELETE /api/employees/:id (Admin only)
-router.delete('/:id', authenticateToken, requireRole(['ADMIN']), employeeController.deleteEmployee);
+// DELETE /api/employees/:id (Admin, HR only)
+router.delete('/:id', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER']), employeeController.deleteEmployee);
 
 // Salary Structure Routes
 router.get('/:id/salary', authenticateToken, employeeController.getSalary);

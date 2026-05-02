@@ -86,6 +86,24 @@ export const EmployeeDetail = () => {
     setFormError('');
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to terminate ${employee.first_name} ${employee.last_name}? This will archive their profile and revoke system access.`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await api.delete(`/employees/${id}`);
+      if (res.data.success) {
+        toast.success('Employee terminated successfully');
+        navigate('/employees');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to terminate employee');
+      setLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     setFormError('');
     try {
@@ -122,10 +140,6 @@ export const EmployeeDetail = () => {
         setEditMode(false);
         setPreviewImage(null);
         setSelectedFile(null);
-        
-        // Update context if it's own profile
-        if (isSelf) {
-        }
       }
     } catch (err) {
       setFormError(err.response?.data?.error || 'Failed to update profile');
@@ -174,14 +188,24 @@ export const EmployeeDetail = () => {
               </button>
             </>
           ) : (
-            canEditThis && (
-              <button 
-                onClick={() => setEditMode(true)}
-                className="flex items-center gap-2 bg-sidebar text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-dark transition-all shadow-lg shadow-primary/10 active:scale-95"
-              >
-                <Edit2 className="w-4 h-4" /> Modify Profile
-              </button>
-            )
+            <div className="flex items-center gap-2">
+              {isAdminOrHR && !isSelf && (
+                <button 
+                  onClick={handleDelete}
+                  className="flex items-center gap-2 bg-error/10 text-error px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-error hover:text-white transition-all active:scale-95 border border-error/20"
+                >
+                  <X className="w-4 h-4" /> Terminate
+                </button>
+              )}
+              {canEditThis && (
+                <button 
+                  onClick={() => setEditMode(true)}
+                  className="flex items-center gap-2 bg-sidebar text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-dark transition-all shadow-lg shadow-primary/10 active:scale-95"
+                >
+                  <Edit2 className="w-4 h-4" /> Modify Profile
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
