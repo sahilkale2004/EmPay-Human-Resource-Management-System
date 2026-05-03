@@ -133,8 +133,8 @@ const EmployeeCard = ({ emp, onClick }) => (
       <h3 className="font-bold text-text text-lg leading-tight group-hover:text-primary transition-colors">
         {emp.first_name} {emp.last_name}
       </h3>
-      <div className="flex items-center justify-center gap-1.5 text-primary text-[10px] font-black uppercase tracking-[0.1em]">
-        <Briefcase className="w-3 h-3" />
+      <div className="flex items-center justify-center gap-2 text-primary text-lg font-bold leading-tight">
+        <Briefcase className="w-4 h-4 shrink-0" />
         {emp.job_position || 'Staff'}
       </div>
       <p className="text-[10px] text-muted font-bold uppercase tracking-widest pt-2">
