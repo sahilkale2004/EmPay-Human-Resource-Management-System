@@ -10,9 +10,9 @@ router.get('/salary-attachment', authenticateToken, requireRole(['ADMIN', 'PAYRO
 // GET /api/reports/headcount
 router.get('/headcount', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER']), reportsController.getHeadcount);
 // GET /api/reports/attendance-summary
-router.get('/attendance-summary', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER']), reportsController.getAttendanceSummary);
+router.get('/attendance-summary', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER']), reportsController.getAttendanceSummary);
 
 // GET /api/reports/leave-summary
-router.get('/leave-summary', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER']), reportsController.getLeaveSummary);
+router.get('/leave-summary', authenticateToken, requireRole(['ADMIN', 'HR_OFFICER', 'PAYROLL_OFFICER']), reportsController.getLeaveSummary);
 
 module.exports = router;
