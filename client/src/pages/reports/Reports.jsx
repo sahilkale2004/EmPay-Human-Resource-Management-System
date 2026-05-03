@@ -173,26 +173,248 @@ const SalaryAttachmentReport = ({ onBack }) => {
   );
 };
 
-const AttendanceReport = ({ onBack }) => (
-  <div className="p-20 text-center">
-    <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-4">
-      <Clock className="w-6 h-6 text-muted" />
-    </div>
-    <p className="text-muted text-xs font-bold uppercase tracking-widest">Attendance Report coming soon</p>
-    <button onClick={onBack} className="mt-6 text-primary font-bold text-xs hover:underline flex items-center gap-2 mx-auto">
-      <ChevronLeft className="w-3 h-3" /> Back to reports
-    </button>
-  </div>
-);
+const AttendanceReport = ({ onBack }) => {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
 
-const LeaveReport = ({ onBack }) => (
-  <div className="p-20 text-center">
-    <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-4">
-      <FileText className="w-6 h-6 text-muted" />
+  React.useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const res = await api.get('/reports/attendance-summary');
+        setData(res.data.data);
+      } catch (err) {
+        toast.error('Failed to load report');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, []);
+
+  if (loading) return (
+    <div className="p-20 text-center animate-pulse">
+      <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-4">
+        <Clock className="w-6 h-6 text-muted" />
+      </div>
+      <p className="text-muted text-xs font-bold uppercase tracking-widest">Compiling Data...</p>
     </div>
-    <p className="text-muted text-xs font-bold uppercase tracking-widest">Leave Report coming soon</p>
-    <button onClick={onBack} className="mt-6 text-primary font-bold text-xs hover:underline flex items-center gap-2 mx-auto">
-      <ChevronLeft className="w-3 h-3" /> Back to reports
-    </button>
-  </div>
-);
+  );
+  
+  if (!data) return (
+    <div className="p-20 text-center">
+      <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-4">
+        <Search className="w-6 h-6 text-muted" />
+      </div>
+      <p className="text-muted text-xs font-bold uppercase tracking-widest">No data available for this report.</p>
+      <button onClick={onBack} className="mt-6 text-primary font-bold text-xs hover:underline">Return to Dashboard</button>
+    </div>
+  );
+
+  return (
+    <div className="space-y-8 max-w-5xl mx-auto pb-20 animate-fade-in">
+      <div className="flex justify-between items-center bg-white/80 backdrop-blur-xl p-6 border border-border rounded-[2.5rem] shadow-xl sticky top-4 z-10">
+        <button onClick={onBack} className="text-text-soft hover:text-primary flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all hover:-translate-x-1">
+          <ChevronLeft className="w-4 h-4" /> Back to reports
+        </button>
+        <h2 className="font-black text-text uppercase tracking-[0.3em] text-[10px]">Attendance Report</h2>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => window.print()}
+            className="p-3 bg-surface hover:bg-border/30 rounded-xl transition-all text-text-soft"
+          >
+            <Printer className="w-4 h-4" />
+          </button>
+          <button className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all">
+            <Download className="w-4 h-4" /> PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white border border-border p-16 rounded-[3rem] shadow-2xl space-y-12 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-12 opacity-[0.03]">
+           <Clock className="w-64 h-64 rotate-12" />
+        </div>
+        
+        <div className="text-center relative">
+          <div className="inline-block px-4 py-1.5 bg-primary/5 rounded-full text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-6">
+            Official HR Document
+          </div>
+          <h1 className="text-4xl font-black text-text tracking-tight mb-3">Attendance Logs</h1>
+          <p className="text-sm font-bold text-muted uppercase tracking-[0.2em]">Company-Wide Summary</p>
+          <div className="w-20 h-1 bg-primary mx-auto mt-8 rounded-full"></div>
+        </div>
+
+        <div className="overflow-hidden border border-border rounded-[2rem]">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr className="bg-surface border-b border-border">
+                <th className="p-6 font-black text-muted text-[10px] uppercase tracking-widest">Metric</th>
+                <th className="p-6 text-right font-black text-muted text-[10px] uppercase tracking-widest">Recorded Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              <tr className="bg-primary/[0.02]">
+                <td colSpan={2} className="px-6 py-4 text-[10px] font-black text-primary uppercase tracking-[0.2em]">Overall Attendance</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Total Recorded Days</td>
+                <td className="p-6 text-right text-text font-black text-lg">{data.total_records || 0} Logs</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Total Present Days</td>
+                <td className="p-6 text-right text-success font-black text-lg">{data.total_present || 0} Days</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Total Absent Days</td>
+                <td className="p-6 text-right text-error font-black text-lg">{data.total_absent || 0} Days</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Total Leaves Taken</td>
+                <td className="p-6 text-right text-text-soft font-black text-lg">{data.total_on_leave || 0} Days</td>
+              </tr>
+              
+              <tr className="bg-primary/[0.02]">
+                <td colSpan={2} className="px-6 py-4 text-[10px] font-black text-primary uppercase tracking-[0.2em]">Work Hours</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Average Daily Work Hours</td>
+                <td className="p-6 text-right text-text font-black text-lg">{data.avg_work_hours || 0} Hrs</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Total Overtime Logged</td>
+                <td className="p-6 text-right text-text font-black text-lg">{data.total_overtime_hours || 0} Hrs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="pt-12 border-t border-border flex justify-between items-center text-[10px] font-bold text-muted uppercase tracking-widest">
+           <div>Generated on: {new Date().toLocaleDateString()}</div>
+           <div>Secure EmPay Payroll System</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LeaveReport = ({ onBack }) => {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const res = await api.get('/reports/leave-summary');
+        setData(res.data.data);
+      } catch (err) {
+        toast.error('Failed to load report');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, []);
+
+  if (loading) return (
+    <div className="p-20 text-center animate-pulse">
+      <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-4">
+        <FileText className="w-6 h-6 text-muted" />
+      </div>
+      <p className="text-muted text-xs font-bold uppercase tracking-widest">Compiling Data...</p>
+    </div>
+  );
+  
+  if (!data) return (
+    <div className="p-20 text-center">
+      <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-4">
+        <Search className="w-6 h-6 text-muted" />
+      </div>
+      <p className="text-muted text-xs font-bold uppercase tracking-widest">No data available for this report.</p>
+      <button onClick={onBack} className="mt-6 text-primary font-bold text-xs hover:underline">Return to Dashboard</button>
+    </div>
+  );
+
+  return (
+    <div className="space-y-8 max-w-5xl mx-auto pb-20 animate-fade-in">
+      <div className="flex justify-between items-center bg-white/80 backdrop-blur-xl p-6 border border-border rounded-[2.5rem] shadow-xl sticky top-4 z-10">
+        <button onClick={onBack} className="text-text-soft hover:text-primary flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all hover:-translate-x-1">
+          <ChevronLeft className="w-4 h-4" /> Back to reports
+        </button>
+        <h2 className="font-black text-text uppercase tracking-[0.3em] text-[10px]">Leave Report</h2>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => window.print()}
+            className="p-3 bg-surface hover:bg-border/30 rounded-xl transition-all text-text-soft"
+          >
+            <Printer className="w-4 h-4" />
+          </button>
+          <button className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all">
+            <Download className="w-4 h-4" /> PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white border border-border p-16 rounded-[3rem] shadow-2xl space-y-12 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-12 opacity-[0.03]">
+           <FileText className="w-64 h-64 rotate-12" />
+        </div>
+        
+        <div className="text-center relative">
+          <div className="inline-block px-4 py-1.5 bg-primary/5 rounded-full text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-6">
+            Official HR Document
+          </div>
+          <h1 className="text-4xl font-black text-text tracking-tight mb-3">Time Off Requests</h1>
+          <p className="text-sm font-bold text-muted uppercase tracking-[0.2em]">Leave Activity Summary</p>
+          <div className="w-20 h-1 bg-primary mx-auto mt-8 rounded-full"></div>
+        </div>
+
+        <div className="overflow-hidden border border-border rounded-[2rem]">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr className="bg-surface border-b border-border">
+                <th className="p-6 font-black text-muted text-[10px] uppercase tracking-widest">Leave Metric</th>
+                <th className="p-6 text-right font-black text-muted text-[10px] uppercase tracking-widest">Aggregate Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              <tr className="bg-primary/[0.02]">
+                <td colSpan={2} className="px-6 py-4 text-[10px] font-black text-primary uppercase tracking-[0.2em]">Request Activity</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Total Leave Requests</td>
+                <td className="p-6 text-right text-text font-black text-lg">{data.total_requests || 0} Requests</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Requests Pending Approval</td>
+                <td className="p-6 text-right text-warning font-black text-lg text-[#C28A2B]">{data.total_pending || 0} Requests</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold">Requests Refused</td>
+                <td className="p-6 text-right text-error font-black text-lg">{data.total_refused || 0} Requests</td>
+              </tr>
+              
+              <tr className="bg-primary/[0.02]">
+                <td colSpan={2} className="px-6 py-4 text-[10px] font-black text-primary uppercase tracking-[0.2em]">Approved Leaves Breakdown</td>
+              </tr>
+              <tr>
+                <td className="p-6 text-text font-bold text-success">Total Approved Days</td>
+                <td className="p-6 text-right text-success font-black text-xl">{data.total_approved_days || 0} Days</td>
+              </tr>
+              {data.breakdown && data.breakdown.map((item, index) => (
+                <tr key={index} className="bg-surface/30">
+                  <td className="px-10 py-4 text-text-soft font-bold">- {item.name}</td>
+                  <td className="px-10 py-4 text-right text-text-soft font-black text-base">{item.approved_days || 0} Days</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="pt-12 border-t border-border flex justify-between items-center text-[10px] font-bold text-muted uppercase tracking-widest">
+           <div>Generated on: {new Date().toLocaleDateString()}</div>
+           <div>Secure EmPay Payroll System</div>
+        </div>
+      </div>
+    </div>
+  );
+};
