@@ -71,21 +71,16 @@ export const Signup = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
-              <label className={labelClass}>Company Name</label>
-              <input
-                type="text"
-                name="companyName"
-                className={inputClass}
-                placeholder="Your company name"
-                value={formData.companyName}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="w-10 h-10 bg-[#5C7A5F] rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-[#3F5C42] transition-colors shrink-0 mb-0.5">
-              <Upload className="w-4 h-4" />
-            </div>
+          <div>
+            <label className={labelClass}>Company Name</label>
+            <input
+              type="text"
+              name="companyName"
+              className={inputClass}
+              placeholder="Your company name"
+              value={formData.companyName}
+              onChange={handleChange}
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
