@@ -132,14 +132,14 @@ const createEmployee = async (req, res) => {
     const { sendWelcomeEmail } = require('../services/emailService');
     sendWelcomeEmail(newEmployee, tempPassword);
 
-    const { io, connectedAdmins } = require('../index');
-    connectedAdmins.forEach((socketId) => {
-      io.to(socketId).emit('new_employee', {
-        message: `New employee ${data.first_name} ${data.last_name} has been added.`,
-        employeeId: empResult.insertId,
-        timestamp: new Date().toISOString(),
-      });
-    });
+    // Create Notifications & Trigger Socket
+    const { createNotificationForRoles } = require('../services/notificationService');
+    await createNotificationForRoles({
+      title: 'New Employee Added',
+      message: `New employee ${data.first_name} ${data.last_name} has been added to the system.`,
+      type: 'NEW_EMPLOYEE',
+      related_id: empResult.insertId
+    }, ['ADMIN', 'HR_OFFICER']);
 
     res.status(201).json({ 
       success: true, 

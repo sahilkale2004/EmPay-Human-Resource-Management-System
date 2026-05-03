@@ -72,23 +72,17 @@ const createTimeOffRequest = async (req, res) => {
       [employee_id, time_off_type_id, start_date, end_date, days, reason]
     );
 
-    // Feature 1: Socket Notification
-    const { io, connectedAdmins } = require('../index');
+    // Create Notifications & Trigger Socket
+    const { createNotificationForRoles } = require('../services/notificationService');
     const [empDetails] = await pool.query('SELECT first_name, last_name FROM employees WHERE id = ?', [employee_id]);
     const employeeName = empDetails.length > 0 ? `${empDetails[0].first_name} ${empDetails[0].last_name}` : 'An employee';
     
-    connectedAdmins.forEach((socketId) => {
-      io.to(socketId).emit('new_timeoff_request', {
-        message: `${employeeName} has submitted a new ${timeOffType} request.`,
-        requestId: employee_id, // Simplified as we don't easily have insertId from pool.query without extra work, but let's assume it's fine for now or fetch it if needed.
-        employeeId: employee_id,
-        employeeName: employeeName,
-        leaveType: timeOffType,
-        startDate: start_date,
-        endDate: end_date,
-        timestamp: new Date().toISOString(),
-      });
-    });
+    await createNotificationForRoles({
+      title: 'New Leave Request',
+      message: `${employeeName} has submitted a new ${timeOffType} request.`,
+      type: 'TIME_OFF_REQUEST',
+      related_id: employee_id // Ideally this should be the insertId of the request
+    }, ['ADMIN', 'HR_OFFICER']);
 
     res.status(201).json({ success: true, message: 'Request submitted successfully' });
   } catch (err) {

@@ -7,36 +7,6 @@ import {
   CheckCircle2, Star, TrendingUp
 } from 'lucide-react';
 
-/* ─── Animated counter hook ─── */
-const useCountUp = (target, duration = 2000) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true;
-          const start = performance.now();
-          const step = (now) => {
-            const progress = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.floor(eased * target));
-            if (progress < 1) requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
-        }
-      },
-      { threshold: 0.3 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target, duration]);
-
-  return [count, ref];
-};
-
 /* ─── Feature data ─── */
 const features = [
   {
@@ -68,31 +38,6 @@ const features = [
     icon: Shield,
     title: 'Role-Based Access',
     desc: 'Granular permissions for Admins, HR Officers, Payroll Officers, and Employees.',
-  },
-];
-
-const stats = [
-  { value: 500, suffix: '+', label: 'Employees Managed' },
-  { value: 98, suffix: '%', label: 'Uptime Guarantee' },
-  { value: 12, suffix: 'k', label: 'Pay-Runs Processed' },
-  { value: 4.9, suffix: '★', label: 'User Satisfaction', isDecimal: true },
-];
-
-const testimonials = [
-  {
-    quote: 'EmPay transformed our HR operations. Payroll that used to take 3 days now takes 30 minutes.',
-    name: 'Priya Sharma',
-    role: 'HR Director, TechNova',
-  },
-  {
-    quote: 'The attendance system alone saved us ₹2L/month in manual reconciliation costs.',
-    name: 'Arjun Mehta',
-    role: 'COO, GreenLeaf Corp',
-  },
-  {
-    quote: 'Clean interface, powerful features. Our team adopted it without any training.',
-    name: 'Sara Chen',
-    role: 'People Ops Lead, FinBridge',
   },
 ];
 
@@ -137,13 +82,6 @@ export const Landing = () => {
             </div>
           </Link>
 
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-[#6B6259]">
-            <a href="#features" className="hover:text-[#5C7A5F] transition-colors">Features</a>
-            <a href="#stats" className="hover:text-[#5C7A5F] transition-colors">Why EmPay</a>
-            <a href="#testimonials" className="hover:text-[#5C7A5F] transition-colors">Testimonials</a>
-          </div>
-
           {/* Right side — Login CTA */}
           <div className="hidden md:flex items-center gap-4">
             <Link
@@ -175,8 +113,6 @@ export const Landing = () => {
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#FDFBF8] border-t border-[#DDD8CF] px-6 pb-6 pt-2 space-y-4 animate-fade-in-up">
             <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-[#6B6259] hover:text-[#5C7A5F]">Features</a>
-            <a href="#stats" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-[#6B6259] hover:text-[#5C7A5F]">Why EmPay</a>
-            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-medium text-[#6B6259] hover:text-[#5C7A5F]">Testimonials</a>
             <div className="flex gap-3 pt-2">
               <Link to="/signup" className="flex-1 text-center py-2.5 border border-[#5C7A5F] text-[#5C7A5F] font-semibold rounded-xl text-sm">Sign Up</Link>
               <Link to="/login" className="flex-1 text-center py-2.5 bg-[#5C7A5F] text-white font-semibold rounded-xl text-sm">Login</Link>
@@ -264,29 +200,6 @@ export const Landing = () => {
                   className="w-full h-auto"
                 />
               </div>
-              {/* Floating badges */}
-              <div className="absolute -top-4 -right-4 bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl px-5 py-3 shadow-xl z-20 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#4A8C4E]/10 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-[#4A8C4E]" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest">Efficiency</p>
-                    <p className="text-lg font-bold text-[#2A2520]">+42%</p>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -bottom-4 -left-4 bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl px-5 py-3 shadow-xl z-20 animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#5C7A5F]/10 rounded-xl flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-[#5C7A5F]" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[#9C9286] uppercase tracking-widest">Payroll</p>
-                    <p className="text-lg font-bold text-[#2A2520]">On Time</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -319,71 +232,6 @@ export const Landing = () => {
                 </div>
                 <h3 className="text-lg font-bold text-[#2A2520] mb-2">{feat.title}</h3>
                 <p className="text-sm text-[#6B6259] leading-relaxed">{feat.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ STATS ═══════════════ */}
-      <section id="stats" className="py-24 bg-[#1C2B1E] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, #5C7A5F 0%, transparent 50%), radial-gradient(circle at 80% 70%, #8B7355 0%, transparent 50%)' }} />
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
-              Trusted by growing <span className="text-[#7FA882]">organizations</span>
-            </h2>
-            <p className="text-[#A8C4AB] max-w-xl mx-auto">
-              Numbers that reflect the impact EmPay has on HR operations worldwide.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
-              <StatBlock key={stat.label} stat={stat} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ TESTIMONIALS ═══════════════ */}
-      <section id="testimonials" className="py-24 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16 space-y-4">
-            <div className="inline-flex items-center gap-2 bg-[#8B7355]/10 text-[#8B7355] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">
-              <Star className="w-3.5 h-3.5" />
-              What Teams Say
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#1C2B1E]">
-              Loved by HR teams <span className="text-[#5C7A5F]">everywhere</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="bg-[#FDFBF8] border border-[#DDD8CF] rounded-2xl p-8 relative hover:shadow-xl hover:shadow-[#5C7A5F]/5 transition-all duration-300 group"
-              >
-                {/* Quote mark */}
-                <div className="absolute top-6 right-6 text-6xl leading-none text-[#5C7A5F]/10 font-serif select-none group-hover:text-[#5C7A5F]/20 transition-colors">
-                  "
-                </div>
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-[#C28A2B] text-[#C28A2B]" />
-                  ))}
-                </div>
-                <p className="text-[#2A2520] text-sm leading-relaxed mb-6 italic">"{t.quote}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-[#EDE9E3]">
-                  <div className="w-10 h-10 bg-[#5C7A5F]/10 rounded-full flex items-center justify-center text-[#5C7A5F] font-bold text-sm">
-                    {t.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-[#2A2520]">{t.name}</p>
-                    <p className="text-xs text-[#9C9286]">{t.role}</p>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
@@ -476,20 +324,6 @@ export const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
-};
-
-/* ─── Stat Block with count-up ─── */
-const StatBlock = ({ stat }) => {
-  const [count, ref] = useCountUp(stat.isDecimal ? Math.floor(stat.value) : stat.value);
-  return (
-    <div ref={ref} className="text-center space-y-2 p-6">
-      <p className="text-4xl md:text-5xl font-bold text-white">
-        {stat.isDecimal ? `${count}.${String(stat.value).split('.')[1] || '0'}` : count}
-        <span className="text-[#7FA882]">{stat.suffix}</span>
-      </p>
-      <p className="text-[#A8C4AB] text-sm font-medium">{stat.label}</p>
     </div>
   );
 };

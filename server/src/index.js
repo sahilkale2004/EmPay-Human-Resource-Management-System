@@ -11,6 +11,7 @@ const payrollRoutes = require('./routes/payroll');
 const reportsRoutes = require('./routes/reports');
 const settingsRoutes = require('./routes/settings');
 const dashboardRoutes = require('./routes/dashboard');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 const httpServer = require('http').createServer(app);
@@ -28,7 +29,7 @@ const connectedAdmins = new Map();
 io.on('connection', (socket) => {
   socket.on('register', ({ userId, role }) => {
     if (['ADMIN', 'HR_OFFICER'].includes(role)) {
-      connectedAdmins.set(userId, socket.id);
+      connectedAdmins.set(userId.toString(), socket.id);
       console.log(`Admin/HR registered: ${userId} (${socket.id})`);
     }
   });
@@ -36,7 +37,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     for (const [userId, socketId] of connectedAdmins.entries()) {
       if (socketId === socket.id) {
-        connectedAdmins.delete(userId);
+        connectedAdmins.delete(userId.toString());
         console.log(`Admin/HR disconnected: ${userId}`);
         break;
       }
@@ -63,6 +64,7 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
