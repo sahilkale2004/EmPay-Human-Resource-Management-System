@@ -166,29 +166,6 @@ export const Landing = () => {
                   Explore Features
                 </a>
               </div>
-
-              {/* Trust bar */}
-              <div className="flex items-center gap-6 pt-4">
-                <div className="flex -space-x-3">
-                  {['#5C7A5F', '#8B7355', '#C28A2B', '#3F5C42'].map((bg, i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-full border-2 border-[#F5F2ED] flex items-center justify-center text-white text-xs font-bold"
-                      style={{ backgroundColor: bg, zIndex: 4 - i }}
-                    >
-                      {['PS', 'AM', 'SC', 'RK'][i]}
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-[#C28A2B] text-[#C28A2B]" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-[#9C9286] font-medium mt-0.5">Trusted by 500+ teams</p>
-                </div>
-              </div>
             </div>
 
             {/* Right — Dashboard preview */}
